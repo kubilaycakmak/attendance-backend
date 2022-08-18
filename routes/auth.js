@@ -29,8 +29,7 @@ router.post("/signup", (req, res, next) => {
       })
       .catch((err) => {
         res.status(500).json({
-          message: "error here",
-          // error: err,
+          error: err,
         });
       });
   });
@@ -50,9 +49,11 @@ router.post("/login", (req, res, next) => {
     })
     .then((result) => {
       if (!result) {
-        return res.status(401).json({
-          message: "Auth failed inccorect password",
-        });
+        if (res.status === 403) {
+          return res.status(403).json({
+            message: "Auth failed incorrect password",
+          });
+        }
       }
       const token = jwt.sign(
         { email: fetchedUser.email, userId: fetchedUser._id },
