@@ -9,7 +9,7 @@ const userSchema = mongoose.Schema({
     type:String,
     created_at: String,
     used_google_account: Boolean,
-})
+},{ timestamps: true })
 
 const User = mongoose.model("User", userSchema);
 
