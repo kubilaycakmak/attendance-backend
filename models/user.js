@@ -4,10 +4,9 @@ const userSchema = mongoose.Schema({
     username:String,
     full_name:String,
     password: String,
-    profile_icture: String,
+    profile_picture: String,
     email:String,
     type:String,
-    created_at: String,
     used_google_account: Boolean,
 },{ timestamps: true })
 
