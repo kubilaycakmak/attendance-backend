@@ -64,11 +64,30 @@ router.post("/login", (req, res, next) => {
         token: token,
         expiresIn: process.env.AUTH_EXPIRESIN,
         userId: fetchedUser._id,
+        username: fetchedUser.username,
+        email: fetchedUser.email,
+        type: fetchedUser.type,
       });
     })
     .catch((e) => {
       console.log(e);
     });
+});
+
+router.post("/forget-password", async (req, res, next) => {
+  try {
+    const user = await User.findOne({ email: req.body.email });
+    if (!user) {
+      return res.status(400).json({
+        message: "user with given email doesn't exist.",
+      });
+    }
+    return res.status(200).json({
+      email: user.email,
+    });
+  } catch (err) {
+    console.log(err);
+  }
 });
 
 export default router;
