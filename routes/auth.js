@@ -90,4 +90,24 @@ router.post("/forget-password", async (req, res, next) => {
   }
 });
 
+router.post("/new-password", async (req, res, next) => {
+  try {
+    const user = await User.findOne({ email: req.body.email });
+    if (!user) {
+      return res.status(400).json({
+        message: "user with given email doesn't exist.",
+      });
+    }
+    const new_password = req.body.password;
+    // const confirm_password = req.body.password;
+    user.password = new_password;
+    user.save();
+    return res.status(200).json({
+      message: "success",
+    });
+  } catch (error) {
+    console.log(error);
+  }
+});
+
 export default router;
