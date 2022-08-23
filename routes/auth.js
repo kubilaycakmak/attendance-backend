@@ -83,6 +83,7 @@ router.post("/forget-password", async (req, res, next) => {
       });
     }
     return res.status(200).json({
+      // send an email to user with expireable link : nodemailer
       email: user.email,
     });
   } catch (err) {
@@ -101,6 +102,7 @@ router.post("/new-password", async (req, res, next) => {
     const new_password = req.body.password;
     // const confirm_password = req.body.password;
     user.password = new_password;
+    // hash the password
     user.save();
     return res.status(200).json({
       message: "success",
