@@ -1,8 +1,10 @@
-import express from "express";
+import express, { response } from "express";
 import User from "../models/user.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-
+import { sendEmail } from "../utils/sendEmail.js";
+import dotenv from "dotenv";
+dotenv.config();
 const router = express.Router();
 
 router.post("/signup", (req, res, next) => {
@@ -76,18 +78,100 @@ router.post("/login", (req, res, next) => {
 
 router.post("/forget-password", async (req, res, next) => {
   try {
-    const user = await User.findOne({ email: req.body.email });
-    if (!user) {
+    let fetchUser;
+    const email = req.body.email;
+    if (!email) {
       return res.status(400).json({
-        message: "user with given email doesn't exist.",
+        message: "email doesn't exist.",
       });
     }
-    return res.status(200).json({
-      // send an email to user with expireable link : nodemailer
-      email: user.email,
-    });
+    User.findOne({ email: email })
+      .then((user) => {
+        if (!user) {
+          return res.status(400).json({
+            message: "email for this user not exist",
+          });
+        }
+        fetchUser = user;
+      })
+      .then(() => {
+        const token = jwt.sign({ id: fetchUser._id }, process.env.JWT_SECRET, {
+          expiresIn: process.env.AUTH_EXPIRESIN,
+        });
+
+        const link = `${process.env.BASE_URL}/${token}`;
+
+        sendEmail(email, "Password reset", link).then(() => {
+          return res.status(200).json({
+            message: "email successfully sent",
+          });
+        });
+      });
   } catch (err) {
     console.log(err);
+  }
+});
+
+// router.get("/forget/:token", (req, res, next) => {
+
+//   const { token } = req.params;
+
+//     if (token) {
+//         jwt.verify(token, process.env.JWT_RESET_KEY, (err, decodedToken) => {
+//             if (err) {
+//                 return res.status(400).json({
+//                   message: "Incorrect or expired link! Please try again."
+//                 })
+//             }
+//             else {
+//                 const { _id } = decodedToken;
+//                 User.findById(_id, (err, user) => {
+//                     if (err) {
+//                         return res.status(400).json({
+//                           message: "User with email ID does not exist! Please try again."
+//                         })
+//                     }
+//                     else {
+//                       res.redirect(process.env.FRONT_END_URL + `/reset/${_id}`);
+//                     }
+//                 })
+//             }
+//         })
+//     }
+//     else {
+//       return res.status(400).json({
+//         message:"Invalid credentials, please fill all inputs"
+//       })
+//     }
+// })
+
+router.get("/forget-password/:token", async (req, res, next) => {
+  // if there is a token and email has the ID then redirect to the frontend with the id
+  try {
+    const { token } = req.params;
+    if (token) {
+      jwt.verify(token, process.env.JWT_SECRET, (err, decodedToken) => {
+        if (err) {
+          console.log("the link is not working, please try again");
+        }
+        // get id from token
+        const { id } = decodedToken;
+        User.findById({ _id: id }).then((err) => {
+          if (!err) {
+            console.log("err");
+            res.redirect(`${process.env.FRONT_END_URL}/reset/${id}/`);
+          } else {
+            return res
+              .status(404)
+              .json({ message: "there is no such a email" });
+          }
+        });
+      });
+    }
+  } catch (err) {
+    return res
+      .status(400)
+      .json({ message: "Invalid credentials, please fill all inputs" });
   }
 });
 
@@ -108,7 +192,9 @@ router.post("/new-password", async (req, res, next) => {
       message: "success",
     });
   } catch (error) {
-    console.log(error);
+    return res.status(400).json({
+      message: "something went wrong",
+    });
   }
 });
 
