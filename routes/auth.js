@@ -95,7 +95,7 @@ router.post("/forget-password", async (req, res, next) => {
         fetchUser = user;
       })
       .then(() => {
-        const token = jwt.sign({ id: fetchUser._id }, process.env.JWT_SECRET, {
+        const token = jwt.sign({ _id: fetchUser._id }, process.env.JWT_SECRET, {
           expiresIn: process.env.AUTH_EXPIRESIN,
         });
 
@@ -155,11 +155,11 @@ router.get("/forget-password/:token", async (req, res, next) => {
           console.log("the link is not working, please try again");
         }
         // get id from token
-        const { id } = decodedToken;
-        User.findById({ _id: id }).then((err) => {
+        const { _id } = decodedToken;
+        User.findById({ _id: _id }, (err, user) => {
           if (!err) {
-            console.log("err");
-            res.redirect(`${process.env.FRONT_END_URL}/reset/${id}/`);
+            console.log("redirect to frontend");
+            res.redirect(`${process.env.FRONT_END_URL}/reset/${_id}/`);
           } else {
             return res
               .status(404)
