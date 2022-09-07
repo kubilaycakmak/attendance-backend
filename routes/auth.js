@@ -112,39 +112,6 @@ router.post("/forget-password", async (req, res, next) => {
   }
 });
 
-// router.get("/forget/:token", (req, res, next) => {
-
-//   const { token } = req.params;
-
-//     if (token) {
-//         jwt.verify(token, process.env.JWT_RESET_KEY, (err, decodedToken) => {
-//             if (err) {
-//                 return res.status(400).json({
-//                   message: "Incorrect or expired link! Please try again."
-//                 })
-//             }
-//             else {
-//                 const { _id } = decodedToken;
-//                 User.findById(_id, (err, user) => {
-//                     if (err) {
-//                         return res.status(400).json({
-//                           message: "User with email ID does not exist! Please try again."
-//                         })
-//                     }
-//                     else {
-//                       res.redirect(process.env.FRONT_END_URL + `/reset/${_id}`);
-//                     }
-//                 })
-//             }
-//         })
-//     }
-//     else {
-//       return res.status(400).json({
-//         message:"Invalid credentials, please fill all inputs"
-//       })
-//     }
-// })
-
 router.get("/forget-password/:token", async (req, res, next) => {
   // if there is a token and email has the ID then redirect to the frontend with the id
   try {
@@ -154,7 +121,6 @@ router.get("/forget-password/:token", async (req, res, next) => {
         if (err) {
           console.log("the link is not working, please try again");
         }
-        // get id from token
         const { _id } = decodedToken;
         User.findById({ _id: _id }, (err, user) => {
           if (!err) {
@@ -163,7 +129,7 @@ router.get("/forget-password/:token", async (req, res, next) => {
           } else {
             return res
               .status(404)
-              .json({ message: "there is no such a email" });
+              .json({ message: "there is no such an email" });
           }
         });
       });
@@ -185,8 +151,7 @@ router.post("/new-password", async (req, res, next) => {
     }
     const new_password = req.body.password;
     // const confirm_password = req.body.password;
-    user.password = new_password;
-    // hash the password
+    user.password = bcrypt.hash(new_password, 10);
     user.save();
     return res.status(200).json({
       message: "success",
