@@ -1,23 +1,20 @@
 import mongoose from "mongoose";
 
 const appointmentSchema = mongoose.Schema({
-    created_by: {
-        type: mongoose.SchemaTypes.ObjectId,
-        ref: "User"
-    }, 
-    target_user: {
-        type: mongoose.SchemaTypes.ObjectId,
-        ref: "User"
-    },  
-    // date: String,
-    // start_time: String,
-    // end_time: String
-    date: {
-        start: Date,
-        end: Date
-    },
-    is_confirmed: Boolean
-
+  created_by: {
+    type: mongoose.SchemaTypes.ObjectId,
+    ref: "User",
+  },
+  target_user: {
+    type: mongoose.SchemaTypes.ObjectId,
+    ref: "User",
+  },
+  // date: {
+  //     start: Date,
+  //     end: Date
+  // },
+  date: Number,
+  status: String,
 });
 
 const Appointment = mongoose.model("Appointment", appointmentSchema);
