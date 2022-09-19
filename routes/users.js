@@ -131,21 +131,21 @@ router.get("/:id/appointments", async (req, res) => {
     const duration = 60 * 60 * 1000;
     const availabilityStart = 9;
     const availabilityEnd = 17;
-    // create initial date objects array
-    const allMonthsDates = [
-      [
-        {
-          month: 1,
-          date: 1,
-          options: [],
-        },
-        // { month: 1, date: 31, options: [] },
-      ],
-      // [
-      //   { month: 2, date: 1, options: [] },
-      //   { month: 2, date: 28, options: [] },
-      // ],
-    ];
+    // const currentYear = new Date().getFullYear();
+    const currentMonth = new Date().getMonth() + 1;
+
+    const monthsDates = [];
+
+    for (let m = 0; m <= 2; m++) {
+      const month = parseInt(moment(new Date()).add(m, "M").format("M"));
+      const monthEnd = parseInt(moment(month).endOf("month").format("DD"));
+      const tmpArray = [];
+
+      for (let d = 1; d <= monthEnd; d++) {
+        tmpArray.push({ month: month, date: d, options: [] });
+      }
+      monthsDates.push(tmpArray);
+    }
 
     const options = []; // [9, 10, 11, ...]
     for (let i = availabilityStart; i < availabilityEnd; i++) {
@@ -154,7 +154,7 @@ router.get("/:id/appointments", async (req, res) => {
         isAvailable: false,
       });
     }
-    const modifiedAllMonthsDates = allMonthsDates.map((month) => {
+    const modifiedMonthsDates = monthsDates.map((month) => {
       return month.map((dateObj) => {
         const individualOptions = [...options];
 
@@ -187,7 +187,7 @@ router.get("/:id/appointments", async (req, res) => {
         };
       });
     });
-    res.status(200).send(modifiedAllMonthsDates);
+    res.status(200).send(modifiedMonthsDates);
   } catch (err) {
     console.error("error", err);
   }
@@ -223,12 +223,15 @@ router.post("/appointment", async (req, res) => {
 });
 
 router.put("/apointment/confirm", async (req, res) => {
+  const { created_by } = req.body;
   try {
     const appintment = await Appointment.findById(created_by);
     if (!appintment) res.status(404).json({ message: "appointment not found" });
     appintment.status = "Active";
     await appintment.save();
-    res.status();
+    res
+      .status(200)
+      .json({ message: "appointment is now confirmed", appintment });
   } catch (err) {
     console.error(err);
     res.status(500).json(err);
@@ -236,7 +239,15 @@ router.put("/apointment/confirm", async (req, res) => {
 });
 
 router.put("appintment/cancel", async (req, res) => {
+  const { created_by } = req.body;
   try {
+    const appintment = await Appointment.findById(created_by);
+    if (!appintment) res.status(404).json({ message: "appointment not found" });
+    appintment.status = "Canceled";
+    await appintment.save();
+    res
+      .status(200)
+      .json({ message: "appointment is now canceled", appintment });
   } catch (err) {
     console.error(err);
     res.status(500).json(err);
