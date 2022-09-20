@@ -1,25 +1,26 @@
-import express from "express";
-import User from "../models/user.js";
-import Appointment from "../models/appointment.js";
-import Reservation from "../models/reservation.js";
-import decodeJWT from "../middleware/check_auth.js";
-import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
-import upload from "../middleware/multer.js";
-import cloudinary from "../config/cloudStorage.js";
-import fs from "fs";
-import moment from "moment";
+import express from 'express';
+import User from '../models/user.js';
+import Appointment from '../models/appointment.js';
+import Reservation from '../models/reservation.js';
+import decodeJWT from '../middleware/check_auth.js';
+import { getSchedules } from '../helpers/userHeplers.js';
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
+import upload from '../middleware/multer.js';
+import cloudinary from '../config/cloudStorage.js';
+import fs from 'fs';
+import moment from 'moment';
 
 const router = express.Router();
 // router.use()
 
-router.get("/me", decodeJWT, async (req, res) => {
+router.get('/me', decodeJWT, async (req, res) => {
   const { userId } = req.userData;
   try {
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({
-        message: "no such user",
+        message: 'no such user',
       });
     }
 
@@ -45,9 +46,9 @@ router.get("/me", decodeJWT, async (req, res) => {
 });
 
 router.put(
-  "/information-update",
+  '/information-update',
   decodeJWT,
-  upload.single("photo"),
+  upload.single('photo'),
   async (req, res) => {
     const { userId } = req.userData;
     const { full_name, password, current_program, social } = req.body;
@@ -56,7 +57,7 @@ router.put(
       const user = await User.findById(userId);
       if (!user) {
         return res.status(404).json({
-          message: "no such user",
+          message: 'no such user',
         });
       }
 
@@ -82,34 +83,34 @@ router.put(
 );
 
 router.post(
-  "/update-photo",
+  '/update-photo',
   decodeJWT,
-  upload.single("photo"),
+  upload.single('photo'),
   async (req, res) => {
     const { userId } = req.userData;
     try {
       const user = await User.findById(userId);
       if (!user) {
         return res.status(404).json({
-          message: "no such user",
+          message: 'no such user',
         });
       }
       const result = await cloudinary.uploader.upload(req.file.filename, {
         public_id: userId,
-        folder: "attendance/users",
+        folder: 'attendance/users',
         overwrite: true,
       });
       console.log(result);
 
       fs.unlink(`${req.file.filename}`, (err) => {
         if (err) throw err;
-        console.log("file successfully deleted");
+        console.log('file successfully deleted');
       });
       user.photo = result.url;
       await user.save();
 
       return res.status(201).json({
-        message: "user photo is updated successfully!!",
+        message: 'user photo is updated successfully!!',
         user,
       });
     } catch (err) {
@@ -119,81 +120,17 @@ router.post(
   }
 );
 
-router.get("/:id/appointments", async (req, res) => {
+router.get('/:id/appointments', async (req, res) => {
   const { id } = req.params;
-  console.log("here");
   try {
-    /*
-     */
-    // find all appointments
-    const appointments = await Appointment.find({ created_by: id }); // [{date: 1663109366731 }]
-    console.log("appointments: ", appointments);
-    const duration = 60 * 60 * 1000;
-    const availabilityStart = 9;
-    const availabilityEnd = 17;
-    // const currentYear = new Date().getFullYear();
-    const currentMonth = new Date().getMonth() + 1;
-
-    const monthsDates = [];
-
-    for (let m = 0; m <= 2; m++) {
-      const month = parseInt(moment(new Date()).add(m, "M").format("M"));
-      const monthEnd = parseInt(moment(month).endOf("month").format("DD"));
-      const tmpArray = [];
-
-      for (let d = 1; d <= monthEnd; d++) {
-        tmpArray.push({ month: month, date: d, options: [] });
-      }
-      monthsDates.push(tmpArray);
-    }
-
-    const options = []; // [9, 10, 11, ...]
-    for (let i = availabilityStart; i < availabilityEnd; i++) {
-      options.push({
-        time: moment(i, ["HH"]).format("h:mm A"),
-        isAvailable: false,
-      });
-    }
-    const modifiedMonthsDates = monthsDates.map((month) => {
-      return month.map((dateObj) => {
-        const individualOptions = [...options];
-
-        //1月1日のappoitment全部取ってくる
-        const appintmentsForTheDay = appointments.filter((appointment) => {
-          return (
-            new Date(appointment.date).getMonth() + 1 === dateObj,
-            month && new Date(appointment.date).getDate() === dateObj.date
-          );
-        });
-
-        console.log("appintmentsFortheDay", appintmentsForTheDay);
-        // extract hours from date timestamp - Ex) [1, 4, ... 12、,4,4]
-        const startHours = appintmentsForTheDay.map((appointment) =>
-          moment(new Date(appointment.date).getHours(), ["HH"]).format("h:mm A")
-        );
-        console.log("startHours", startHours);
-
-        // exclude time options that are already booked
-        const excludedIndividualOptions = individualOptions.map((option) => {
-          return {
-            ...option,
-            isAvailable: !startHours.includes(option.time),
-          };
-        });
-
-        return {
-          ...dateObj,
-          options: [...excludedIndividualOptions],
-        };
-      });
-    });
-    res.status(200).send(modifiedMonthsDates);
+    const appointments = getSchedules(id);
+    res.status(200).send(appointments);
   } catch (err) {
-    console.error("error", err);
+    console.error('error', err);
   }
 });
 
-router.post("/appointment", async (req, res) => {
+router.post('/appointment', async (req, res) => {
   const { created_by, target_user, date } = req.body;
   try {
     const createdUser = await User.findById(created_by);
@@ -201,7 +138,23 @@ router.post("/appointment", async (req, res) => {
 
     if (!createdUser || !targetUser) {
       return res.status(404).json({
-        message: "no such user",
+        message: 'no such user',
+      });
+    }
+
+    const schedules = getSchedules(id);
+    // check if requested date and time is available
+    const dateObj = new Date(date);
+    const month = dateObj.getMonth() + 1;
+    const date = dateObj.getDate();
+    const formattedTime = moment(date, ['HH']).format('h:mm A');
+    let targetScheduleOption = schedules
+      .find((monthBlock) => monthBlock[0].month === month)
+      ?.find((dateBlock) => dateBlock.date === date)
+      ?.options.find((option) => option.time.indexOf(formattedTime) >= 0);
+    if (!targetScheduleOption || !targetScheduleOption.isAvailable) {
+      return res.status(400).json({
+        message: 'requested date or time not available',
       });
     }
 
@@ -209,11 +162,11 @@ router.post("/appointment", async (req, res) => {
       created_by,
       target_user,
       date,
-      status: "Pending",
+      status: 'Pending',
     });
 
     res.status(201).json({
-      message: "appointment is now created with status pending",
+      message: 'appointment is now created with status pending',
       appointment,
     });
   } catch (err) {
@@ -222,32 +175,32 @@ router.post("/appointment", async (req, res) => {
   }
 });
 
-router.put("/apointment/confirm", async (req, res) => {
+router.put('/apointment/confirm', async (req, res) => {
   const { created_by } = req.body;
   try {
     const appintment = await Appointment.findById(created_by);
-    if (!appintment) res.status(404).json({ message: "appointment not found" });
-    appintment.status = "Active";
+    if (!appintment) res.status(404).json({ message: 'appointment not found' });
+    appintment.status = 'Active';
     await appintment.save();
     res
       .status(200)
-      .json({ message: "appointment is now confirmed", appintment });
+      .json({ message: 'appointment is now confirmed', appintment });
   } catch (err) {
     console.error(err);
     res.status(500).json(err);
   }
 });
 
-router.put("appintment/cancel", async (req, res) => {
+router.put('appintment/cancel', async (req, res) => {
   const { created_by } = req.body;
   try {
     const appintment = await Appointment.findById(created_by);
-    if (!appintment) res.status(404).json({ message: "appointment not found" });
-    appintment.status = "Canceled";
+    if (!appintment) res.status(404).json({ message: 'appointment not found' });
+    appintment.status = 'Canceled';
     await appintment.save();
     res
       .status(200)
-      .json({ message: "appointment is now canceled", appintment });
+      .json({ message: 'appointment is now canceled', appintment });
   } catch (err) {
     console.error(err);
     res.status(500).json(err);
