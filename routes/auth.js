@@ -239,26 +239,27 @@ router.post("/google-login", verifyGoogleMiddleware, async (req, res) => {
 });
 
 router.post("/set-password", async (req, res) => {
-  const { email, currentPassword, newPassword } = req.body;
+  const { email, newPassword } = req.body;
 
   try {
-    if (!email || !currentPassword || !newPassword) {
+    if (!email || !newPassword) {
       return res.status(400).json({
         message: "please fill the required inputs",
       });
     }
-    const user = await User.findOne({ email, password: currentPassword });
+    const user = await User.findOne({ email });
     if (!user) {
       return res.status(400).json({
         message: "No such user",
       });
     }
+
     const hashedPassword = await bcrypt.hash(newPassword, 10);
     user.password = hashedPassword;
     await user.save();
 
     res.status(201).json({
-      message: "Password is successfuly updated!",
+      message: "Password is successfuly created",
       result: user,
     });
   } catch (err) {
