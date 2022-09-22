@@ -1,33 +1,33 @@
-import express, { response } from "express";
-import User from "../models/user.js";
-import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
-import verifyGoogleMiddleware from "../middleware/verify_google_user.js";
-import { sendEmail } from "../utils/sendEmail.js";
-import dotenv from "dotenv";
+import express, { response } from 'express';
+import User from '../models/user.js';
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
+import verifyGoogleMiddleware from '../middleware/verify_google_user.js';
+import { sendEmail } from '../utils/sendEmail.js';
+import dotenv from 'dotenv';
 
 dotenv.config();
 
 const router = express.Router();
 
-router.post("/signup", (req, res, next) => {
+router.post('/signup', (req, res, next) => {
   bcrypt.hash(req.body.password, 10).then((hash) => {
     User.findOne({ email: req.body.email })
       .then((user1) => {
         if (user1) {
           return res.status(401).json({
-            message: "User Already Exist!",
+            message: 'User Already Exist!',
           });
         }
         user1 = new User(req.body);
         user1.save().then((result) => {
           if (!result) {
             return res.status(500).json({
-              message: "Error when creating user",
+              message: 'Error when creating user',
             });
           }
           res.status(201).json({
-            message: "User created!",
+            message: 'User created!',
             result: result,
           });
         });
@@ -40,13 +40,13 @@ router.post("/signup", (req, res, next) => {
   });
 });
 
-router.post("/login", (req, res, next) => {
+router.post('/login', (req, res, next) => {
   let fetchedUser;
   User.findOne({ email: req.body.email })
     .then((user) => {
       if (!user) {
         return res.status(401).json({
-          message: "Auth failed no such user",
+          message: 'Auth failed no such user',
         });
       }
       fetchedUser = user;
@@ -56,7 +56,7 @@ router.post("/login", (req, res, next) => {
       if (!result) {
         if (res.status === 403) {
           return res.status(403).json({
-            message: "Auth failed incorrect password",
+            message: 'Auth failed incorrect password',
           });
         }
       }
@@ -79,7 +79,7 @@ router.post("/login", (req, res, next) => {
     });
 });
 
-router.post("/forget-password", async (req, res, next) => {
+router.post('/forget-password', async (req, res, next) => {
   try {
     let fetchUser;
     const email = req.body.email;
@@ -92,7 +92,7 @@ router.post("/forget-password", async (req, res, next) => {
       .then((user) => {
         if (!user) {
           return res.status(400).json({
-            message: "email for this user not exist",
+            message: 'email for this user not exist',
           });
         }
         fetchUser = user;
@@ -104,9 +104,9 @@ router.post("/forget-password", async (req, res, next) => {
 
         const link = `${process.env.BASE_URL}/${token}`;
 
-        sendEmail(email, "Password reset", link).then(() => {
+        sendEmail(email, 'Password reset', link).then(() => {
           return res.status(200).json({
-            message: "email successfully sent",
+            message: 'email successfully sent',
           });
         });
       });
@@ -115,25 +115,25 @@ router.post("/forget-password", async (req, res, next) => {
   }
 });
 
-router.get("/forget-password/:token", async (req, res, next) => {
+router.get('/forget-password/:token', async (req, res, next) => {
   try {
     const { token } = req.params;
     if (token) {
       jwt.verify(token, process.env.JWT_SECRET, (err, decodedToken) => {
         if (err) {
-          console.log("the link is not working, please try again");
+          console.log('the link is not working, please try again');
         }
         const { _id } = decodedToken;
         User.findById({ _id: _id }, (err, user) => {
           if (!err) {
-            console.log("redirect to frontend");
+            console.log('redirect to frontend');
             const { _id } = decodedToken;
             console.log(_id);
             res.redirect(`${process.env.FRONT_END_URL}/reset/${_id}/`);
           } else {
             return res
               .status(404)
-              .json({ message: "there is no such an email" });
+              .json({ message: 'there is no such an email' });
           }
         });
       });
@@ -141,11 +141,11 @@ router.get("/forget-password/:token", async (req, res, next) => {
   } catch (err) {
     return res
       .status(400)
-      .json({ message: "Invalid credentials, please fill all inputs" });
+      .json({ message: 'Invalid credentials, please fill all inputs' });
   }
 });
 
-router.post("/new-password/:_id", async (req, res, next) => {
+router.post('/new-password/:_id', async (req, res, next) => {
   try {
     const { _id } = req.params;
     const user = await User.findById({ _id: _id });
@@ -158,25 +158,25 @@ router.post("/new-password/:_id", async (req, res, next) => {
     const new_password = req.body.password;
     user.password = await bcrypt.hash(new_password, salt);
     await user.save();
-    res.send("password reset successfully.");
+    res.send('password reset successfully.');
     return res.status(200).json({
-      message: "success",
+      message: 'success',
     });
   } catch (error) {
     return res.status(400).json({
-      message: "something went wrong",
+      message: 'something went wrong',
     });
   }
 });
 
-router.post("/google-signup", verifyGoogleMiddleware, async (req, res) => {
+router.post('/google-signup', verifyGoogleMiddleware, async (req, res) => {
   const creatingUser = req.body;
   const { email, password } = creatingUser;
 
   try {
     if (!email || !password) {
       return res.status(400).json({
-        message: "please fill the required field",
+        message: 'please fill the required field',
       });
     }
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -184,7 +184,7 @@ router.post("/google-signup", verifyGoogleMiddleware, async (req, res) => {
 
     if (existingUser) {
       return res.status(400).json({
-        message: "User Already Exist!",
+        message: 'User Already Exist!',
       });
     }
 
@@ -194,11 +194,11 @@ router.post("/google-signup", verifyGoogleMiddleware, async (req, res) => {
     });
     if (!user) {
       return res.status(500).json({
-        message: "Error when creating user",
+        message: 'Error when creating user',
       });
     }
     res.status(201).json({
-      message: "User created!",
+      message: 'User created!',
       result: user,
     });
   } catch (err) {
@@ -209,14 +209,14 @@ router.post("/google-signup", verifyGoogleMiddleware, async (req, res) => {
   }
 });
 
-router.post("/google-login", verifyGoogleMiddleware, async (req, res) => {
+router.post('/google-login', verifyGoogleMiddleware, async (req, res) => {
   try {
     const { email } = req.body;
 
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(401).json({
-        message: "Auth failed no such user",
+        message: 'Auth failed no such user',
       });
     }
 
@@ -238,19 +238,19 @@ router.post("/google-login", verifyGoogleMiddleware, async (req, res) => {
   }
 });
 
-router.post("/set-password", async (req, res) => {
+router.post('/set-password', async (req, res) => {
   const { email, newPassword } = req.body;
 
   try {
     if (!email || !newPassword) {
       return res.status(400).json({
-        message: "please fill the required inputs",
+        message: 'please fill the required inputs',
       });
     }
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(400).json({
-        message: "No such user",
+        message: 'No such user',
       });
     }
 
@@ -259,7 +259,7 @@ router.post("/set-password", async (req, res) => {
     await user.save();
 
     res.status(201).json({
-      message: "Password is successfuly created",
+      message: 'Password is successfuly created',
       result: user,
     });
   } catch (err) {
@@ -267,44 +267,6 @@ router.post("/set-password", async (req, res) => {
     res.status(500).json({
       error: err,
     });
-  }
-});
-
-router.post("/forget-password", async (req, res, next) => {
-  try {
-    const user = await User.findOne({ email: req.body.email });
-    if (!user) {
-      return res.status(400).json({
-        message: "user with given email doesn't exist.",
-      });
-    }
-    return res.status(200).json({
-      // send an email to user with expireable link : nodemailer
-      email: user.email,
-    });
-  } catch (err) {
-    console.log(err);
-  }
-});
-
-router.post("/new-password", async (req, res, next) => {
-  try {
-    const user = await User.findOne({ email: req.body.email });
-    if (!user) {
-      return res.status(400).json({
-        message: "user with given email doesn't exist.",
-      });
-    }
-    const new_password = req.body.password;
-    // const confirm_password = req.body.password;
-    user.password = new_password;
-    // hash the password
-    user.save();
-    return res.status(200).json({
-      message: "success",
-    });
-  } catch (error) {
-    console.log(error);
   }
 });
 
