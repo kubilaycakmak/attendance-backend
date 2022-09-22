@@ -13,7 +13,7 @@ const appointmentSchema = mongoose.Schema({
   //     start: Date,
   //     end: Date
   // },
-  date: Number,
+  datetime: Number,
   status: String,
 });
 
