@@ -5,7 +5,7 @@ const userSchema = mongoose.Schema({
   full_name: String,
   password: String,
   email: String,
-  role: String,
+  role: Array,
   created_at: String,
   current_program: String,
   invited_by: String,
@@ -15,7 +15,7 @@ const userSchema = mongoose.Schema({
     discord: String,
     slack: String,
     linkedin: String,
-  },
+  }
 });
 
 const User = mongoose.model('User', userSchema);
