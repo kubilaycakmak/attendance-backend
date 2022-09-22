@@ -5,7 +5,6 @@ import jwt from "jsonwebtoken";
 import verifyGoogleMiddleware from "../middleware/verify_google_user.js";
 import { sendEmail } from "../utils/sendEmail.js";
 import dotenv from "dotenv";
-import verifyGoogleMiddleware from "../middleware/verify_google_user.js";
 
 dotenv.config();
 
