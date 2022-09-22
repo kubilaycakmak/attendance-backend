@@ -171,15 +171,14 @@ router.post('/new-password/:_id', async (req, res, next) => {
 
 router.post('/google-signup', verifyGoogleMiddleware, async (req, res) => {
   const creatingUser = req.body;
-  const { email, password } = creatingUser;
+  const { email } = creatingUser;
 
   try {
-    if (!email || !password) {
+    if (!email) {
       return res.status(400).json({
         message: 'please fill the required field',
       });
     }
-    const hashedPassword = await bcrypt.hash(password, 10);
     const existingUser = await User.findOne({ email: email });
 
     if (existingUser) {
@@ -190,7 +189,6 @@ router.post('/google-signup', verifyGoogleMiddleware, async (req, res) => {
 
     const user = await User.create({
       ...creatingUser,
-      password: hashedPassword,
     });
     if (!user) {
       return res.status(500).json({
