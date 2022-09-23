@@ -24,8 +24,8 @@ router.get("/me", decodeJWT, async (req, res) => {
       });
     }
 
-    const appointments = await Appointment.find({ user_id: userId });
-    const reservations = await Reservation.find({ user_id: userId });
+    const appointments = await Appointment.find({ $or:[{created_by: userId}, {target_user: userId}] });
+    const reservations = await Reservation.find({ $or:[{created_by: userId}, {target_user: userId}] });
 
     const token = jwt.sign(
       { email: user.email, userId: user._id },
