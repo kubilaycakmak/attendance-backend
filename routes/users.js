@@ -130,7 +130,7 @@ router.get("/:id/appointments", async (req, res) => {
   }
 });
 
-router.post("/appointment", async (req, res) => {
+router.post("/appointments", async (req, res) => {
   const { created_by, target_user, datetime } = req.body;
   try {
     const createdUser = await User.findById(created_by);
@@ -178,7 +178,7 @@ router.post("/appointment", async (req, res) => {
   }
 });
 
-router.put("/appointment/confirm", async (req, res) => {
+router.put("/appointments/confirm", async (req, res) => {
   const { _id } = req.body;
   try {
     const appintment = await Appointment.findById(_id);
@@ -195,7 +195,7 @@ router.put("/appointment/confirm", async (req, res) => {
   }
 });
 
-router.put("/appointment/cancel", async (req, res) => {
+router.put("/appointments/cancel", async (req, res) => {
   const { _id } = req.body;
   try {
     const appintment = await Appointment.findById(_id);
