@@ -54,11 +54,9 @@ router.post('/login', (req, res, next) => {
     })
     .then((result) => {
       if (!result) {
-        if (res.status === 403) {
-          return res.status(403).json({
-            message: 'Auth failed incorrect password',
-          });
-        }
+        return res.status(401).json({
+          message: 'Auth failed incorrect password',
+        });
       }
       const token = jwt.sign(
         { email: fetchedUser.email, userId: fetchedUser._id },
