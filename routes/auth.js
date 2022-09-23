@@ -19,7 +19,7 @@ router.post('/signup', (req, res, next) => {
             message: 'User Already Exist!',
           });
         }
-        user1 = new User(req.body);
+        user1 = new User({ ...req.body, password: hash });
         user1.save().then((result) => {
           if (!result) {
             return res.status(500).json({
