@@ -262,6 +262,21 @@ router.post('/set-password', async (req, res) => {
         message: 'No such user',
       });
     }
+    // check token
+    if(!req.headers.authorization) {
+      return res.status(401).json({
+        message: 'token not provided',
+      });
+    }
+    const token = extractJwtFromHeader(req.headers.authorization);
+    jwt.verify(token, process.env.JWT_SECRET, (err, decodedToken) => {
+      const userId = decodedToken._id;
+      if (!userId || !user._id.equals(userId)) {
+        return res.status(400).json({
+          message: 'token data not valid.',
+        });
+      }
+    });
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
     user.password = hashedPassword;
