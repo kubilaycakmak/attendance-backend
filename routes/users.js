@@ -24,8 +24,8 @@ router.get("/me", decodeJWT, async (req, res) => {
       });
     }
 
-    const appointments = await Appointment.find({ user_id: userId });
-    const reservations = await Reservation.find({ user_id: userId });
+    const appointments = await Appointment.find({ $or:[{created_by: userId}, {target_user: userId}] });
+    const reservations = await Reservation.find({ $or:[{created_by: userId}, {target_user: userId}] });
 
     const token = jwt.sign(
       { email: user.email, userId: user._id },
@@ -130,7 +130,7 @@ router.get("/:id/appointments", async (req, res) => {
   }
 });
 
-router.post("/appointment", async (req, res) => {
+router.post("/appointments", async (req, res) => {
   const { created_by, target_user, datetime } = req.body;
   try {
     const createdUser = await User.findById(created_by);
@@ -178,34 +178,34 @@ router.post("/appointment", async (req, res) => {
   }
 });
 
-router.put("/appointment/confirm", async (req, res) => {
+router.put("/appointments/confirm", async (req, res) => {
   const { _id } = req.body;
   try {
-    const appintment = await Appointment.findById(_id);
-    if (!appintment)
+    const appointment = await Appointment.findById(_id);
+    if (!appointment)
       return res.status(404).json({ message: "appointment not found" });
-    appintment.status = "Active";
-    await appintment.save();
+    appointment.status = "Active";
+    await appointment.save();
     return res
       .status(200)
-      .json({ message: "appointment is now confirmed", appintment });
+      .json({ message: "appointment is now confirmed", appointment });
   } catch (err) {
     console.error(err);
     res.status(500).json(err);
   }
 });
 
-router.put("/appointment/cancel", async (req, res) => {
+router.put("/appointments/cancel", async (req, res) => {
   const { _id } = req.body;
   try {
-    const appintment = await Appointment.findById(_id);
-    if (!appintment)
+    const appointment = await Appointment.findById(_id);
+    if (!appointment)
       return res.status(404).json({ message: "appointment not found" });
-    appintment.status = "Canceled";
-    await appintment.save();
+    appointment.status = "Canceled";
+    await appointment.save();
     return res
       .status(200)
-      .json({ message: "appointment is now canceled", appintment });
+      .json({ message: "appointment is now canceled", appointment });
   } catch (err) {
     console.error(err);
     res.status(500).json(err);

@@ -1,5 +1,6 @@
 import express, { response } from 'express';
 import User from '../models/user.js';
+import extractJwtFromHeader from '../utils/extractJwtFromHeader.js';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import verifyGoogleMiddleware from '../middleware/verify_google_user.js';
@@ -19,7 +20,7 @@ router.post('/signup', (req, res, next) => {
             message: 'User Already Exist!',
           });
         }
-        user1 = new User(req.body);
+        user1 = new User({ ...req.body, password: hash });
         user1.save().then((result) => {
           if (!result) {
             return res.status(500).json({
@@ -54,11 +55,9 @@ router.post('/login', (req, res, next) => {
     })
     .then((result) => {
       if (!result) {
-        if (res.status === 403) {
-          return res.status(403).json({
-            message: 'Auth failed incorrect password',
-          });
-        }
+        return res.status(401).json({
+          message: 'Auth failed incorrect password',
+        });
       }
       const token = jwt.sign(
         { email: fetchedUser.email, userId: fetchedUser._id },
@@ -98,9 +97,9 @@ router.post('/forget-password', async (req, res, next) => {
         fetchUser = user;
       })
       .then(() => {
-        const token = jwt.sign({ _id: fetchUser._id }, process.env.JWT_SECRET, {
-          expiresIn: process.env.AUTH_EXPIRESIN,
-        });
+        const token = jwt.sign({ userId: fetchUser._id }, process.env.JWT_SECRET, {
+            expiresIn: process.env.AUTH_EXPIRESIN,
+          });
 
         const link = `${process.env.BASE_URL}/${token}`;
 
@@ -127,8 +126,6 @@ router.get('/forget-password/:token', async (req, res, next) => {
         User.findById({ _id: _id }, (err, user) => {
           if (!err) {
             console.log('redirect to frontend');
-            const { _id } = decodedToken;
-            console.log(_id);
             res.redirect(`${process.env.FRONT_END_URL}/reset/${_id}/`);
           } else {
             return res
@@ -154,6 +151,20 @@ router.post('/new-password/:_id', async (req, res, next) => {
         message: "user doesn't exist.",
       });
     }
+    if(!req.headers.authorization) {
+      return res.status(401).json({
+        message: 'token not provided',
+      });
+    }
+    const token = extractJwtFromHeader(req.headers.authorization);
+    jwt.verify(token, process.env.JWT_SECRET, (err, decodedToken) => {
+      const userId = decodedToken._id;
+      if (!userId || userId !== _id) {
+        return res.status(400).json({
+          message: 'token data not valid.',
+        });
+      }
+    });
     const salt = await bcrypt.genSalt(10);
     const new_password = req.body.password;
     user.password = await bcrypt.hash(new_password, salt);
@@ -251,6 +262,21 @@ router.post('/set-password', async (req, res) => {
         message: 'No such user',
       });
     }
+    // check token
+    if(!req.headers.authorization) {
+      return res.status(401).json({
+        message: 'token not provided',
+      });
+    }
+    const token = extractJwtFromHeader(req.headers.authorization);
+    jwt.verify(token, process.env.JWT_SECRET, (err, decodedToken) => {
+      const userId = decodedToken._id;
+      if (!userId || !user._id.equals(userId)) {
+        return res.status(400).json({
+          message: 'token data not valid.',
+        });
+      }
+    });
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
     user.password = hashedPassword;

@@ -1,9 +1,10 @@
 import jwt from "jsonwebtoken";
+import extractJwtFromHeader from '../utils/extractJwtFromHeader.js';
 
 const decodeJWT = (req, res, next) => {
     try {
       const token = req.headers.authorization;
-      const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+      const decodedToken = jwt.verify(extractJwtFromHeader(token), process.env.JWT_SECRET);
       req.userData = { email: decodedToken.email, userId: decodedToken.userId };
       next();
 
