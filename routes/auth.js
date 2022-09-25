@@ -80,7 +80,6 @@ router.post('/login', (req, res, next) => {
 
 router.post('/forget-password', async (req, res, next) => {
   try {
-    let fetchUser;
     const email = req.body.email;
     if (!email) {
       return res.status(400).json({
@@ -94,21 +93,22 @@ router.post('/forget-password', async (req, res, next) => {
             message: 'email for this user not exist',
           });
         }
-        fetchUser = user;
-      })
-      .then(() => {
-        const token = jwt.sign({ userId: fetchUser._id }, process.env.JWT_SECRET, {
-            expiresIn: process.env.AUTH_EXPIRESIN,
-          });
+        console.log(user.id);
+        const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, {
+          expiresIn: process.env.AUTH_EXPIRESIN,
+        });
 
-        const link = `${process.env.BASE_URL}/${token}`;
+        const link = `${process.env.BASE_URL}/api/auth/forget-password/${token}`;
 
         sendEmail(email, 'Password reset', link).then(() => {
           return res.status(200).json({
             message: 'email successfully sent',
           });
         });
-      });
+        // return res.status(200).json({
+        //   message: "success"
+        // })
+      })
   } catch (err) {
     console.log(err);
   }
@@ -122,11 +122,11 @@ router.get('/forget-password/:token', async (req, res, next) => {
         if (err) {
           console.log('the link is not working, please try again');
         }
-        const { _id } = decodedToken;
-        User.findById({ _id: _id }, (err, user) => {
-          if (!err) {
+        const { userId } = decodedToken;
+        User.findById({ _id: userId }, (err, user) => {
+          if (user) {
             console.log('redirect to frontend');
-            res.redirect(`${process.env.FRONT_END_URL}/reset/${_id}/`);
+            res.redirect(`${process.env.FRONT_END_URL}/new-password/${userId}/`);
           } else {
             return res
               .status(404)
@@ -142,34 +142,30 @@ router.get('/forget-password/:token', async (req, res, next) => {
   }
 });
 
-router.post('/new-password/:_id', async (req, res, next) => {
+router.post('/new-password', async (req, res, next) => {
   try {
-    const { _id } = req.params;
-    const user = await User.findById({ _id: _id });
+    console.log(req.body);
+    const { id, password } = req.body; 
+    
+    const user = await User.findOne({ id: id });
+
+
     if (!user) {
       return res.status(400).json({
         message: "user doesn't exist.",
       });
     }
-    if(!req.headers.authorization) {
-      return res.status(401).json({
-        message: 'token not provided',
-      });
-    }
-    const token = extractJwtFromHeader(req.headers.authorization);
-    jwt.verify(token, process.env.JWT_SECRET, (err, decodedToken) => {
-      const userId = decodedToken._id;
-      if (!userId || userId !== _id) {
-        return res.status(400).json({
-          message: 'token data not valid.',
-        });
-      }
-    });
+
     const salt = await bcrypt.genSalt(10);
-    const new_password = req.body.password;
-    user.password = await bcrypt.hash(new_password, salt);
+
+    user.password = await bcrypt.hash(password, salt);
+
     await user.save();
-    res.send('password reset successfully.');
+    console.log("user saved..");
+    console.log(salt);
+    console.log(password);
+    console.log(user.password);
+    // res.send('password reset successfully.');
     return res.status(200).json({
       message: 'success',
     });
