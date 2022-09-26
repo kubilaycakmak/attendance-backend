@@ -156,16 +156,10 @@ router.post('/new-password', async (req, res, next) => {
       });
     }
 
-    const salt = await bcrypt.genSalt(10);
-
-    user.password = await bcrypt.hash(password, salt);
+    user.password = await bcrypt.hash(password, 10);
 
     await user.save();
     console.log("user saved..");
-    console.log(salt);
-    console.log(password);
-    console.log(user.password);
-    // res.send('password reset successfully.');
     return res.status(200).json({
       message: 'success',
     });
