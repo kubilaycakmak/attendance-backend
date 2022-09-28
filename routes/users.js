@@ -191,10 +191,10 @@ router.post('/appointments', async (req, res) => {
 /**
  * set appointment status to "Active"
  */
-router.put('/appointments/:id/confirm', async (req, res) => {
-  const { id } = req.params;
+router.put('/appointments/:appointmentId/confirm', async (req, res) => {
+  const { appointmentId } = req.params;
   try {
-    const appointment = await Appointment.findById(id);
+    const appointment = await Appointment.findById(appointmentId);
     if (!appointment)
       return res.status(404).json({ message: 'appointment not found' });
     appointment.status = 'Active';
@@ -211,10 +211,10 @@ router.put('/appointments/:id/confirm', async (req, res) => {
 /**
  * set appointment status to "Canceled"
  */
-router.put('/appointments/:id/cancel', async (req, res) => {
-  const { id } = req.params;
+router.put('/appointments/:appointmentId/cancel', async (req, res) => {
+  const { appointmentId } = req.params;
   try {
-    const appointment = await Appointment.findById(id);
+    const appointment = await Appointment.findById(appointmentId);
     if (!appointment)
       return res.status(404).json({ message: 'appointment not found' });
     appointment.status = 'Canceled';
