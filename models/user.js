@@ -15,7 +15,7 @@ const userSchema = mongoose.Schema({
     discord: String,
     slack: String,
     linkedin: String,
-  }
+  },
 });
 
 const User = mongoose.model('User', userSchema);

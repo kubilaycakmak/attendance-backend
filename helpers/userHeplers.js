@@ -1,19 +1,19 @@
-import Appointment from "../models/appointment.js";
-import moment from "moment";
+import Appointment from '../models/appointment.js';
+import moment from 'moment';
 
 const getSchedules = async (id) => {
   // find all appointments
   const appointments = await Appointment.find({
     created_by: id,
-    status: { $ne: "Canceled" },
+    status: { $ne: 'Canceled' },
   });
   const availabilityStart = 9;
   const availabilityEnd = 17;
   const monthsDates = [];
 
   for (let m = 0; m <= 2; m++) {
-    const month = parseInt(moment(new Date()).add(m, "M").format("M"));
-    const monthEnd = parseInt(moment(month).endOf("month").format("DD"));
+    const month = parseInt(moment(new Date()).add(m, 'M').format('M'));
+    const monthEnd = parseInt(moment(month).endOf('month').format('DD'));
     const tmpArray = [];
 
     for (let d = 1; d <= monthEnd; d++) {
@@ -25,7 +25,7 @@ const getSchedules = async (id) => {
   const options = []; // [9, 10, 11, ...]
   for (let i = availabilityStart; i < availabilityEnd; i++) {
     options.push({
-      time: moment(i, ["HH"]).format("h:mm A"),
+      time: moment(i, ['HH']).format('h:mm A'),
       isAvailable: false,
     });
   }
@@ -44,8 +44,8 @@ const getSchedules = async (id) => {
 
       // extract hours from date timestamp - Ex) [1, 4, ... 12、,4,4]
       const startHours = appintmentsForTheDay.map((appointment) =>
-        moment(new Date(appointment.datetime).getHours(), ["HH"]).format(
-          "h:mm A"
+        moment(new Date(appointment.datetime).getHours(), ['HH']).format(
+          'h:mm A'
         )
       );
 

@@ -86,29 +86,28 @@ router.post('/forget-password', async (req, res, next) => {
         message: "email doesn't exist.",
       });
     }
-    User.findOne({ email: email })
-      .then((user) => {
-        if (!user) {
-          return res.status(400).json({
-            message: 'email for this user not exist',
-          });
-        }
-        console.log(user.id);
-        const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, {
-          expiresIn: process.env.AUTH_EXPIRESIN,
+    User.findOne({ email: email }).then((user) => {
+      if (!user) {
+        return res.status(400).json({
+          message: 'email for this user not exist',
         });
+      }
+      console.log(user.id);
+      const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, {
+        expiresIn: process.env.AUTH_EXPIRESIN,
+      });
 
-        const link = `${process.env.BASE_URL}/api/auth/forget-password/${token}`;
+      const link = `${process.env.BASE_URL}/api/auth/forget-password/${token}`;
 
-        sendEmail(email, 'Password reset', link).then(() => {
-          return res.status(200).json({
-            message: 'email successfully sent',
-          });
+      sendEmail(email, 'Password reset', link).then(() => {
+        return res.status(200).json({
+          message: 'email successfully sent',
         });
-        // return res.status(200).json({
-        //   message: "success"
-        // })
-      })
+      });
+      // return res.status(200).json({
+      //   message: "success"
+      // })
+    });
   } catch (err) {
     console.log(err);
   }
@@ -126,7 +125,9 @@ router.get('/forget-password/:token', async (req, res, next) => {
         User.findById({ _id: userId }, (err, user) => {
           if (user) {
             console.log('redirect to frontend');
-            res.redirect(`${process.env.FRONT_END_URL}/new-password/${userId}/`);
+            res.redirect(
+              `${process.env.FRONT_END_URL}/new-password/${userId}/`
+            );
           } else {
             return res
               .status(404)
@@ -145,10 +146,9 @@ router.get('/forget-password/:token', async (req, res, next) => {
 router.post('/new-password', async (req, res, next) => {
   try {
     console.log(req.body);
-    const { id, password } = req.body; 
-    
-    const user = await User.findOne({ id: id });
+    const { id, password } = req.body;
 
+    const user = await User.findOne({ id: id });
 
     if (!user) {
       return res.status(400).json({
@@ -161,7 +161,7 @@ router.post('/new-password', async (req, res, next) => {
     user.password = await bcrypt.hash(password, salt);
 
     await user.save();
-    console.log("user saved..");
+    console.log('user saved..');
     console.log(salt);
     console.log(password);
     console.log(user.password);
@@ -259,7 +259,7 @@ router.post('/set-password', async (req, res) => {
       });
     }
     // check token
-    if(!req.headers.authorization) {
+    if (!req.headers.authorization) {
       return res.status(401).json({
         message: 'token not provided',
       });

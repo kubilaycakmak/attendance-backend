@@ -1,13 +1,13 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
 
 const appointmentSchema = mongoose.Schema({
   created_by: {
     type: mongoose.SchemaTypes.ObjectId,
-    ref: "User",
+    ref: 'User',
   },
   target_user: {
     type: mongoose.SchemaTypes.ObjectId,
-    ref: "User",
+    ref: 'User',
   },
   // date: {
   //     start: Date,
@@ -17,6 +17,6 @@ const appointmentSchema = mongoose.Schema({
   status: String,
 });
 
-const Appointment = mongoose.model("Appointment", appointmentSchema);
+const Appointment = mongoose.model('Appointment', appointmentSchema);
 
 export default Appointment;
