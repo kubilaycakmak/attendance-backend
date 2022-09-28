@@ -51,6 +51,8 @@ router.post('/login', (req, res, next) => {
         });
       }
       fetchedUser = user;
+      console.log(req.body.password);
+      console.log(user.password);
       return bcrypt.compare(req.body.password, user.password);
     })
     .then((result) => {
@@ -145,27 +147,21 @@ router.get('/forget-password/:token', async (req, res, next) => {
 
 router.post('/new-password', async (req, res, next) => {
   try {
-    console.log(req.body);
-    const { id, password } = req.body;
-
-    const user = await User.findOne({ id: id });
+    const { _id, password } = req.body;
+    const user = await User.findById({ _id: _id });
 
     if (!user) {
       return res.status(400).json({
         message: "user doesn't exist.",
       });
     }
+    const newPassword = await bcrypt.hash(password, 10);
+    user.password = newPassword;
+    await user.save().then((res) => {
+      console.log(res);
+      console.log('user saved..');
+    });
 
-    const salt = await bcrypt.genSalt(10);
-
-    user.password = await bcrypt.hash(password, salt);
-
-    await user.save();
-    console.log('user saved..');
-    console.log(salt);
-    console.log(password);
-    console.log(user.password);
-    // res.send('password reset successfully.');
     return res.status(200).json({
       message: 'success',
     });
