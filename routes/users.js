@@ -124,6 +124,9 @@ router.post(
   }
 );
 
+/**
+ * get all appointments of specific user
+ */
 router.get('/:id/appointments', async (req, res) => {
   const { id } = req.params;
   try {
@@ -134,6 +137,9 @@ router.get('/:id/appointments', async (req, res) => {
   }
 });
 
+/**
+ * post new appointment
+ */
 router.post('/appointments', async (req, res) => {
   const { created_by, target_user, datetime } = req.body;
   try {
@@ -182,10 +188,13 @@ router.post('/appointments', async (req, res) => {
   }
 });
 
-router.put('/appointments/confirm', async (req, res) => {
-  const { _id } = req.body;
+/**
+ * set appointment status to "Active"
+ */
+router.put('/appointments/:id/confirm', async (req, res) => {
+  const { id } = req.params;
   try {
-    const appointment = await Appointment.findById(_id);
+    const appointment = await Appointment.findById(id);
     if (!appointment)
       return res.status(404).json({ message: 'appointment not found' });
     appointment.status = 'Active';
@@ -199,10 +208,13 @@ router.put('/appointments/confirm', async (req, res) => {
   }
 });
 
-router.put('/appointments/cancel', async (req, res) => {
-  const { _id } = req.body;
+/**
+ * set appointment status to "Canceled"
+ */
+router.put('/appointments/:id/cancel', async (req, res) => {
+  const { id } = req.params;
   try {
-    const appointment = await Appointment.findById(_id);
+    const appointment = await Appointment.findById(id);
     if (!appointment)
       return res.status(404).json({ message: 'appointment not found' });
     appointment.status = 'Canceled';
