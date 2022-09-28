@@ -5,6 +5,7 @@ import cors from 'cors';
 import header_middleware from './middleware/header.js';
 import AuthRoutes from './routes/auth.js';
 import UserRoutes from './routes/users.js';
+import RoomRoutes from './routes/rooms.js';
 import db from './db/db.js';
 
 const app = express();
@@ -25,6 +26,7 @@ app.get('/health', (req, res) => {
 
 app.use('/api/auth', AuthRoutes);
 app.use('/api/users', UserRoutes);
+app.use('/api/rooms', RoomRoutes);
 
 app.listen(process.env.PORT, (req, res) => {
   console.log(`app is listening to PORT ${process.env.PORT}`);
