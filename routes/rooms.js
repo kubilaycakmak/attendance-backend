@@ -16,8 +16,10 @@ const router = express.Router();
  */
 router.get('/reservations', decodeJWT, async (req, res) => {
   try {
-    const reservations = await Reservation.find();
-    res.status(200).send(reservations);
+    const reservations = await Reservation.find({
+      status: { $ne: 'Canceled' },
+    });
+    res.status(200).json(reservations);
   } catch (err) {
     console.error('error', err);
   }
@@ -48,7 +50,7 @@ router.post('/reservations', decodeJWT, async (req, res) => {
   });
   if (error) {
     console.log('error', error);
-    return res.status(statusCode).send(error);
+    return res.status(statusCode).json(error);
   }
 
   try {
@@ -63,11 +65,61 @@ router.post('/reservations', decodeJWT, async (req, res) => {
       end_time,
       duration,
     });
-    res.status(200).send(reservation);
+    res.status(200).json(reservation);
   } catch (err) {
     console.error('error', err);
   }
 });
+
+/**
+ * set appointment status to "Active"
+ */
+router.put(
+  '/reservations/:reservationId/confirm',
+  decodeJWT,
+  async (req, res) => {
+    const { reservationId } = req.params;
+    try {
+      const reservation = await Reservation.findById(reservationId);
+      if (!reservation) {
+        return res
+          .status(404)
+          .json({ message: 'reservation with provided ID not found' });
+      }
+      reservation.status = 'Active';
+      await reservation.save();
+      res
+        .status(200)
+        .json({ message: 'reservation is now confirmed', reservation });
+    } catch (e) {
+      res.status(500).json({ message: 'unexpected error occured' });
+    }
+  }
+);
+
+/**
+ * set appointment status to "Canceled"
+ */
+router.put(
+  '/reservations/:reservationId/cancel',
+  decodeJWT,
+  async (req, res) => {
+    const { reservationId } = req.params;
+    try {
+      const reservation = await Reservation.findById(reservationId);
+      if (!reservation) {
+        return reservation
+          .status(404)
+          .json({ message: 'reservation with provided ID not found' });
+      }
+      reservation.status = 'Canceled';
+      await reservation.save();
+      res.status(200).json({ message: 'reservation is now canceled' });
+    } catch (e) {
+      res.status(500).json({ message: 'unexpected error occured' });
+    }
+  }
+);
 
 /**
  * get all reservations of specific user
@@ -76,8 +128,11 @@ router.get('/:room_id/reservations', decodeJWT, async (req, res) => {
   const { room_id } = req.params;
 
   try {
-    const reservations = await Reservation.find({ room_id });
-    res.status(200).send(reservations);
+    const reservations = await Reservation.find({
+      room_id,
+      status: { $ne: 'Canceled' },
+    });
+    res.status(200).json(reservations);
   } catch (err) {
     console.error('error', err);
   }

@@ -86,7 +86,10 @@ const validateReservation = async (reqData) => {
 
   // check for conflicts
   try {
-    const existingReservations = await Reservation.find({ room_id });
+    const existingReservations = await Reservation.find({
+      room_id,
+      status: { $ne: 'Canceled' },
+    });
     if (existingReservations.length) {
       const dateConflictedReservations = existingReservations.filter(
         (reservation) => {
