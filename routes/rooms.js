@@ -21,7 +21,7 @@ router.get('/reservations', decodeJWT, async (req, res) => {
     });
     res.status(200).json(reservations);
   } catch (err) {
-    console.error('error', err);
+    res.status(500).json({ message: 'unexpected error occured' });
   }
 });
 
@@ -50,7 +50,7 @@ router.post('/reservations', decodeJWT, async (req, res) => {
   });
   if (error) {
     console.log('error', error);
-    return res.status(statusCode).json(error);
+    return res.status(statusCode).json({ message: error });
   }
 
   try {
@@ -67,7 +67,7 @@ router.post('/reservations', decodeJWT, async (req, res) => {
     });
     res.status(200).json(reservation);
   } catch (err) {
-    console.error('error', err);
+    res.status(500).json({ message: 'unexpected error occured' });
   }
 });
 
@@ -134,7 +134,7 @@ router.get('/:room_id/reservations', decodeJWT, async (req, res) => {
     });
     res.status(200).json(reservations);
   } catch (err) {
-    console.error('error', err);
+    res.status(500).json({ message: 'unexpected error occured' });
   }
 });
 
