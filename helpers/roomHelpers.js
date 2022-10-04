@@ -1,6 +1,7 @@
 import moment from 'moment';
 import Room from '../models/room.js';
 import Reservation from '../models/reservation.js';
+import { MAX_WEEK_DURATION } from '../config/reservationConfig.js';
 
 const validateReservation = async (reqData) => {
   const {
@@ -68,6 +69,12 @@ const validateReservation = async (reqData) => {
       return {
         error:
           'wrong duration value provided. It needs to be bigger than or equal to 1',
+        statusCode: 400,
+      };
+    }
+    if (duration > MAX_WEEK_DURATION) {
+      return {
+        error: `the maximum duration is ${MAX_WEEK_DURATION}.`,
         statusCode: 400,
       };
     }
