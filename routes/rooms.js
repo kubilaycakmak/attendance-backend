@@ -63,7 +63,7 @@ router.post('/reservations', decodeJWT, async (req, res) => {
       end_date,
       start_time,
       end_time,
-      duration,
+      duration: type === 'weekly' ? duration : null,
     });
     res.status(200).json(reservation);
   } catch (err) {
