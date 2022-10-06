@@ -10,6 +10,7 @@ import upload from '../middleware/multer.js';
 import cloudinary from '../config/cloudStorage.js';
 import fs from 'fs';
 import moment from 'moment';
+import fileUploadHelper from '../helpers/flileUploadHelper.js';
 
 const router = express.Router();
 // router.use()
@@ -99,17 +100,7 @@ router.post(
           message: 'no such user',
         });
       }
-      const result = await cloudinary.uploader.upload(req.file.filename, {
-        public_id: userId,
-        folder: 'attendance/users',
-        overwrite: true,
-      });
-      console.log(result);
-
-      fs.unlink(`${req.file.filename}`, (err) => {
-        if (err) throw err;
-        console.log('file successfully deleted');
-      });
+      const result = await fileUploadHelper(req.file.filename, userId, 'users');
       user.photo = result.url;
       await user.save();
 
