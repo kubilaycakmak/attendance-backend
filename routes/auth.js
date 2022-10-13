@@ -80,7 +80,7 @@ router.post('/login', (req, res, next) => {
     });
 });
 
-router.post('/forget-password', async (req, res, next) => {
+router.post('/forgot-password', async (req, res, next) => {
   try {
     const email = req.body.email;
     if (!email) {
@@ -99,7 +99,7 @@ router.post('/forget-password', async (req, res, next) => {
         expiresIn: process.env.AUTH_EXPIRESIN,
       });
 
-      const link = `${process.env.BASE_URL}/api/auth/forget-password/${token}`;
+      const link = `${process.env.BASE_URL}/api/auth/forgot-password/${token}`;
 
       sendEmail(email, 'Password reset', link).then(() => {
         return res.status(200).json({
@@ -115,7 +115,7 @@ router.post('/forget-password', async (req, res, next) => {
   }
 });
 
-router.get('/forget-password/:token', async (req, res, next) => {
+router.get('/forgot-password/:token', async (req, res, next) => {
   try {
     const { token } = req.params;
     if (token) {
