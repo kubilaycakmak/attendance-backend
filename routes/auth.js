@@ -80,12 +80,15 @@ router.post('/login', (req, res, next) => {
     });
 });
 
+/**
+ * Check email address and send a resetting link if email exists
+ */
 router.post('/forgot-password', async (req, res, next) => {
   try {
     const email = req.body.email;
     if (!email) {
       return res.status(400).json({
-        message: "email doesn't exist.",
+        message: 'email is not provided. Please enter one.',
       });
     }
     User.findOne({ email: email }).then((user) => {
@@ -121,14 +124,14 @@ router.get('/forgot-password/:token', async (req, res, next) => {
     if (token) {
       jwt.verify(token, process.env.JWT_SECRET, (err, decodedToken) => {
         if (err) {
-          console.log('the link is not working, please try again');
+          console.log('the link is not valid. please try again');
         }
         const { userId } = decodedToken;
         User.findById({ _id: userId }, (err, user) => {
           if (user) {
             console.log('redirect to frontend');
             res.redirect(
-              `${process.env.FRONT_END_URL}/new-password/${userId}/`
+              `${process.env.FRONT_END_URL}/new-password/${userId}?token=${token}`
             );
           } else {
             return res
@@ -147,14 +150,30 @@ router.get('/forgot-password/:token', async (req, res, next) => {
 
 router.post('/new-password', async (req, res, next) => {
   try {
+    const { token } = req.query.token;
+    if (!token) {
+      return res.status(400).json({
+        message: 'token not provided.',
+      });
+    }
     const { _id, password } = req.body;
     const user = await User.findById({ _id: _id });
-
     if (!user) {
       return res.status(400).json({
         message: "user doesn't exist.",
       });
     }
+    // verify token
+    jwt.verify(token, process.env.JWT_SECRET, (jwtErr, decodedToken) => {
+      const { userIdFromToken } = decodedToken;
+      User.findById({ _id: userIdFromToken }, (err, userFromToken) => {
+        if (jwtErr || !userFromToken || _id !== userIdFromToken) {
+          return res.status(400).json({
+            message: 'invalid token provided.',
+          });
+        }
+      });
+    });
     const newPassword = await bcrypt.hash(password, 10);
     user.password = newPassword;
     await user.save().then((res) => {
