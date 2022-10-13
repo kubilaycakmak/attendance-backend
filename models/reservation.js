@@ -1,15 +1,14 @@
 import mongoose from 'mongoose';
 
 const reservationSchema = mongoose.Schema({
-  name: String,
   type: String,
   user_id: String,
   room_id: String,
   status: String,
-  startDate: Date,
-  endDate: Date,
-  startTime: Date,
-  endTime: Date,
+  start_date: String,
+  end_date: String,
+  start_time: String,
+  end_time: String,
   duration: Number,
 });
 
