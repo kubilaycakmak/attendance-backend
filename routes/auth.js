@@ -3,6 +3,7 @@ import User from '../models/user.js';
 import extractJwtFromHeader from '../utils/extractJwtFromHeader.js';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import decodeJWT from '../middleware/check_auth.js';
 import verifyGoogleMiddleware from '../middleware/verify_google_user.js';
 import { sendEmail } from '../utils/sendEmail.js';
 import dotenv from 'dotenv';
@@ -217,7 +218,14 @@ router.post('/google-signup', verifyGoogleMiddleware, async (req, res) => {
         message: 'Error when creating user',
       });
     }
+    const token = jwt.sign(
+      { email: user.email, userId: user._id },
+      process.env.JWT_SECRET,
+      { expiresIn: process.env.AUTH_EXPIRESIN }
+    );
     res.status(201).json({
+      token: token,
+      expiresIn: process.env.AUTH_EXPIRESIN,
       message: 'User created!',
       result: user,
     });
@@ -239,7 +247,6 @@ router.post('/google-login', verifyGoogleMiddleware, async (req, res) => {
         message: 'Auth failed no such user',
       });
     }
-
     const token = jwt.sign(
       { email: user.email, userId: user._id },
       process.env.JWT_SECRET,
@@ -258,37 +265,27 @@ router.post('/google-login', verifyGoogleMiddleware, async (req, res) => {
   }
 });
 
-router.post('/set-password', async (req, res) => {
-  const { email, newPassword } = req.body;
-
+router.post('/set-password', decodeJWT, async (req, res) => {
+  // check token
+  if (!req.headers.authorization) {
+    return res.status(401).json({
+      message: 'token not provided',
+    });
+  }
+  const { userId } = req.userData;
+  const { newPassword } = req.body;
+  if (!newPassword) {
+    return res.status(400).json({
+      message: 'new password is not provided. please enter one',
+    });
+  }
   try {
-    if (!email || !newPassword) {
-      return res.status(400).json({
-        message: 'please fill the required inputs',
-      });
-    }
-    const user = await User.findOne({ email });
+    const user = await User.findById(userId);
     if (!user) {
       return res.status(400).json({
         message: 'No such user',
       });
     }
-    // check token
-    if (!req.headers.authorization) {
-      return res.status(401).json({
-        message: 'token not provided',
-      });
-    }
-    const token = extractJwtFromHeader(req.headers.authorization);
-    jwt.verify(token, process.env.JWT_SECRET, (err, decodedToken) => {
-      const userId = decodedToken._id;
-      if (!userId || !user._id.equals(userId)) {
-        return res.status(400).json({
-          message: 'token data not valid.',
-        });
-      }
-    });
-
     const hashedPassword = await bcrypt.hash(newPassword, 10);
     user.password = hashedPassword;
     await user.save();
