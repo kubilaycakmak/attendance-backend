@@ -57,29 +57,35 @@ router.post('/', decodeJWT, checkIsCoordinator, async (req, res) => {
   }
 });
 
-router.post('/:id/update-photo', upload.single('photo'), async (req, res) => {
-  const { id } = req.params;
-  try {
-    const room = await Room.findById(id);
-    if (!room) {
+router.post(
+  '/:id/update-photo',
+  decodeJWT,
+  checkIsCoordinator,
+  upload.single('photo'),
+  async (req, res) => {
+    const { id } = req.params;
+    try {
+      const room = await Room.findById(id);
+      if (!room) {
+        return res.status(200).json({
+          message: 'not such room',
+        });
+      }
+      const result = await fileUploadHelper(req.file.filename, id, 'rooms');
+
+      room.picture_url = result.url;
+      await room.save();
+
       return res.status(200).json({
-        message: 'not such room',
+        room,
+        message: 'room photo is updated successfully!!!',
       });
+    } catch (err) {
+      console.log(err);
+      res.status(500).json(err);
     }
-    const result = await fileUploadHelper(req.file.filename, id, 'rooms');
-
-    room.picture_url = result.url;
-    await room.save();
-
-    return res.status(200).json({
-      room,
-      message: 'room photo is updated successfully!!!',
-    });
-  } catch (err) {
-    console.log(err);
-    res.status(500).json(err);
   }
-});
+);
 
 router.put('/:id', decodeJWT, checkIsCoordinator, async (req, res) => {
   const { id } = req.params;
@@ -112,7 +118,7 @@ router.put('/:id', decodeJWT, checkIsCoordinator, async (req, res) => {
   }
 });
 
-router.delete('/:id', checkIsCoordinator, async (req, res) => {
+router.delete('/:id', decodeJWT, checkIsCoordinator, async (req, res) => {
   const { id } = req.params;
   try {
     const room = await Room.findById(id);
