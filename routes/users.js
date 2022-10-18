@@ -4,11 +4,8 @@ import Appointment from '../models/appointment.js';
 import Reservation from '../models/reservation.js';
 import decodeJWT from '../middleware/check_auth.js';
 import { getSchedules } from '../helpers/userHeplers.js';
-import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import upload from '../middleware/multer.js';
-import cloudinary from '../config/cloudStorage.js';
-import fs from 'fs';
 import moment from 'moment';
 import fileUploadHelper from '../helpers/flileUploadHelper.js';
 

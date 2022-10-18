@@ -1,4 +1,5 @@
 import moment from 'moment';
+import Reservation from './models/reservation.js';
 
 // const detectConflictedTime = (d1, d2) => {
 //   // if (d1.end >= d2.start && d2.start <= d1.end) return true
@@ -31,7 +32,7 @@ import moment from 'moment';
 // console.log(a);
 
 // get next available time
-const nextAvailableTime = () => {
+const nextAvailableTime = async () => {
   const now = moment();
 
   const format = 'hh:mm';
@@ -39,36 +40,46 @@ const nextAvailableTime = () => {
   const endTime = moment('21:30', format);
 
   // TODO: get reservation as of now
-  // const reservations = await Reservation.find({ room_id });
-  const reservations = [
-    {
-      roomId: '6335e24c64e8a6df4ed2223f',
-      type: 'weekly',
-      startDate: '2022-10-05',
-      endDate: '2022-10-07',
-      startTime: '11:00',
-      endTime: '12:30',
-      duration: 12,
-    },
-    {
-      roomId: '6335e24c64e8a6df4ed2223f',
-      type: 'weekly',
-      startDate: '2022-10-08',
-      endDate: '2022-10-09',
-      startTime: '15:00',
-      endTime: '17:30',
-      duration: 12,
-    },
-    {
-      roomId: '6335e24c64e8a6df4ed2223f',
-      type: 'weekly',
-      startDate: '2022-10-07',
-      endDate: '2022-10-010',
-      startTime: '15:00',
-      endTime: '17:30',
-      duration: 12,
-    },
-  ];
+  const room_id = '6335e24c64e8a6df4ed2223f';
+  const reservations = await Reservation.find({ room_id });
+  // const reservations = await Reservation.find({
+  //   $and: [
+  //     { room_id },
+  //     // { end_date: { $gte: now.format('YYYY-MM-DD') } },
+  //     // { end_time: { $gte: now.format(format) } },
+  //   ],
+  // });
+  console.log(reservations);
+
+  // const reservations = [
+  //   {
+  //     roomId: '6335e24c64e8a6df4ed2223f',
+  //     type: 'weekly',
+  //     startDate: '2022-10-05',
+  //     endDate: '2022-10-07',
+  //     startTime: '11:00',
+  //     endTime: '12:30',
+  //     duration: 12,
+  //   },
+  //   {
+  //     roomId: '6335e24c64e8a6df4ed2223f',
+  //     type: 'weekly',
+  //     startDate: '2022-10-08',
+  //     endDate: '2022-10-09',
+  //     startTime: '15:00',
+  //     endTime: '17:30',
+  //     duration: 12,
+  //   },
+  //   {
+  //     roomId: '6335e24c64e8a6df4ed2223f',
+  //     type: 'weekly',
+  //     startDate: '2022-10-07',
+  //     endDate: '2022-10-010',
+  //     startTime: '15:00',
+  //     endTime: '17:30',
+  //     duration: 12,
+  //   },
+  // ];
 
   //  sort closestReservation to get the newest reservation
   const sortedReservation = reservations.sort((r1, r2) => {
@@ -96,7 +107,17 @@ const nextAvailableTime = () => {
   return availableTime;
 };
 
-console.log(nextAvailableTime());
+// nextAvailableTime();
 
 // console.log(moment('2022-09-08T12:00').format('MMMM Do YYYY, h:mm:ss a'));
 // console.log(new Date(nextAvailableTime()));
+
+const now = moment();
+const format = 'hh:mm';
+const startTime = moment('08:00', format);
+const endTime = moment('21:30', format);
+const tomorrow = moment('08:00', format).add(1, 'days');
+
+console.log(now);
+console.log(now.isBetween(startTime, endTime));
+console.log('tomorrow', tomorrow);

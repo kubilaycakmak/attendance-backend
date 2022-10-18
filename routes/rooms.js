@@ -6,6 +6,7 @@ import upload from '../middleware/multer.js';
 import checkIsCoordinator from '../middleware/check_is_coorinator.js';
 import fileUploadHelper from '../helpers/flileUploadHelper.js';
 import { validateReservation } from '../helpers/roomHelpers.js';
+import getNextAvailableTime from '../helpers/getNextAvailableTime.js';
 
 const router = express.Router();
 
@@ -21,6 +22,7 @@ router.get('/', async (req, res) => {
 
 router.get('/:id', async (req, res) => {
   const { id } = req.params;
+
   try {
     const room = await Room.findById(id);
     if (!room) {
@@ -28,9 +30,12 @@ router.get('/:id', async (req, res) => {
         message: 'not such room',
       });
     }
-
+    const nextAvailableTime = await getNextAvailableTime(id);
     return res.status(200).json({
-      room,
+      room: {
+        ...room._doc,
+        nextAvailableTime,
+      },
     });
   } catch (err) {
     console.log(err);
