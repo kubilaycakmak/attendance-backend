@@ -22,12 +22,13 @@ const getNextAvailableTime = async (room_id) => {
   //  sort closestReservation to get the newest reservation
   const sortedReservation = reservations.sort((r1, r2) => {
     return (
-      moment([r1.end_date, r1.end_time].join('T')) -
-      moment([r2.end_date, r2.end_time].join('T'))
+      moment([r2.end_date, r2.end_time].join('T')) -
+      moment([r1.end_date, r1.end_time].join('T'))
     );
   });
 
   const closestReservation = sortedReservation[0];
+  console.log(closestReservation);
   const closestStart = moment(
     [closestReservation.start_date, closestReservation.start_time].join('T')
   );
