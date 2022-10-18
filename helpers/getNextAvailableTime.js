@@ -5,8 +5,8 @@ const getNextAvailableTime = async (room_id) => {
   const now = moment();
 
   const format = 'hh:mm';
-  const startTime = moment('08:00', format);
-  const endTime = moment('21:30', format);
+  const schoolStart = moment('08:00', format);
+  const schoolEnd = moment('21:30', format);
 
   const reservations = await Reservation.find({
     $and: [
@@ -37,11 +37,11 @@ const getNextAvailableTime = async (room_id) => {
 
   let availableTime;
 
-  if (now.isBefore(closestStart) && now.isBetween(startTime, endTime)) {
+  if (now.isBefore(closestStart) && now.isBetween(schoolStart, schoolEnd)) {
     availableTime = now;
   } else if (
     now.isBefore(closestStart) &&
-    !now.isBetween(startTime, endTime) &&
+    !now.isBetween(schoolStart, schoolEnd) &&
     moment('08:00', format).add(1, 'days').isBefore(closestStart)
   ) {
     availableTime = moment('08:00', format).add(1, 'days');
