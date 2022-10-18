@@ -65,7 +65,7 @@ router.post('/reservations', decodeJWT, async (req, res) => {
       end_time,
       duration: type === 'weekly' ? duration : null,
     });
-    res.status(200).json(reservation);
+    res.status(201).json(reservation);
   } catch (err) {
     res.status(500).json({ message: 'unexpected error occured' });
   }
