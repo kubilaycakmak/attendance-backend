@@ -125,7 +125,9 @@ router.get('/forgot-password/:token', async (req, res, next) => {
     if (token) {
       jwt.verify(token, process.env.JWT_SECRET, (err, decodedToken) => {
         if (err) {
-          console.log('the link is not valid. please try again');
+          return res
+            .status(401)
+            .json({ message: 'the link is not valid. please try again' });
         }
         const { userId } = decodedToken;
         User.findById({ _id: userId }, (err, user) => {
@@ -151,39 +153,34 @@ router.get('/forgot-password/:token', async (req, res, next) => {
 
 router.post('/new-password', async (req, res, next) => {
   try {
-    const { token } = req.query.token;
+    const { token, password } = req.body;
     if (!token) {
       return res.status(400).json({
         message: 'token not provided.',
       });
     }
-    const { _id, password } = req.body;
-    const user = await User.findById({ _id: _id });
-    if (!user) {
-      return res.status(400).json({
-        message: "user doesn't exist.",
-      });
-    }
     // verify token
-    jwt.verify(token, process.env.JWT_SECRET, (jwtErr, decodedToken) => {
-      const { userIdFromToken } = decodedToken;
-      User.findById({ _id: userIdFromToken }, (err, userFromToken) => {
-        if (jwtErr || !userFromToken || _id !== userIdFromToken) {
-          return res.status(400).json({
-            message: 'invalid token provided.',
-          });
-        }
-      });
-    });
-    const newPassword = await bcrypt.hash(password, 10);
-    user.password = newPassword;
-    await user.save().then((res) => {
-      console.log(res);
+    jwt.verify(token, process.env.JWT_SECRET, async (jwtErr, decodedToken) => {
+      if (jwtErr) {
+        return res.status(400).json({
+          message: 'invalid token provided.',
+        });
+      }
+      const { userId } = decodedToken;
+      const user = await User.findById(userId);
+      if (!user) {
+        return res.status(400).json({
+          message: "user doesn't exist.",
+        });
+      }
+      const newPassword = await bcrypt.hash(password, 10);
+      user.password = newPassword;
+      await user.save();
       console.log('user saved..');
-    });
 
-    return res.status(200).json({
-      message: 'success',
+      return res.status(200).json({
+        message: 'success',
+      });
     });
   } catch (error) {
     return res.status(400).json({
