@@ -10,7 +10,7 @@ export const signup = async (req, res) => {
   const { email, password, username } = req.body;
   if (!password?.trim() || !email || !username) {
     return res.status(401).json({
-      message: 'please provide required fields.',
+      message: 'Please provide required fields.',
     });
   }
   try {
@@ -19,24 +19,24 @@ export const signup = async (req, res) => {
     const user = await User.findOne({ email });
     if (user) {
       return res.status(401).json({
-        message: 'User Already Exist!',
+        message: 'User with provided email already exists.',
       });
     }
     const newUser = new User({ ...req.body, password: hash });
-    const result = newUser.save();
+    const result = await newUser.save();
     if (!result) {
       return res.status(500).json({
-        message: 'Error when creating user',
+        message: 'Error occured while registering.',
       });
     }
     res.status(201).json({
-      message: 'User created!',
+      message: 'User successfully created.',
       result: result,
     });
   } catch (err) {
     console.log('err:', err);
     return res.status(500).json({
-      message: 'unexpected error occured. please try again',
+      message: 'Unexpected error occured. Please try again.',
     });
   }
 };
@@ -48,7 +48,7 @@ export const login = async (req, res) => {
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(401).json({
-        message: 'Auth failed no such user',
+        message: 'User with provided email does not exist.',
       });
     }
     fetchedUser = user;
@@ -56,7 +56,7 @@ export const login = async (req, res) => {
     const result = await bcrypt.compare(password, user.password);
     if (!result) {
       return res.status(401).json({
-        message: 'Auth failed incorrect password',
+        message: 'Wrong password provided. Please try again.',
       });
     }
     const token = jwt.sign(
@@ -75,7 +75,7 @@ export const login = async (req, res) => {
   } catch (err) {
     console.log('err:', err);
     return res.status(500).json({
-      message: 'unexpected error occured. please try again',
+      message: 'Unexpected error occured. Please try again.',
     });
   }
 };
@@ -88,13 +88,13 @@ export const forgotPassword = async (req, res) => {
     const { email } = req.body;
     if (!email) {
       return res.status(400).json({
-        message: 'email is not provided. Please enter one.',
+        message: 'Email is not provided. Please provide one.',
       });
     }
     const user = await User.findOne({ email: email });
     if (!user) {
       return res.status(400).json({
-        message: 'email for this user not exist',
+        message: 'User with provided email does not exist.',
       });
     }
     const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, {
@@ -105,12 +105,12 @@ export const forgotPassword = async (req, res) => {
     await sendEmail(email, 'Password reset', link);
 
     return res.status(200).json({
-      message: 'email with a link was sent to rest password',
+      message: 'Email was sent with a link to rest password.',
     });
   } catch (err) {
     console.log('err:', err);
     return res.status(500).json({
-      message: 'unexpected error occured. please try again',
+      message: 'Unexpected error occured. Please try again.',
     });
   }
 };
@@ -123,7 +123,7 @@ export const checkEmailTokenAndRedirect = async (req, res) => {
         if (err) {
           return res
             .status(401)
-            .json({ message: 'the link is not valid. please try again' });
+            .json({ message: 'The link is not valid. Please try again' });
         }
         const { userId } = decodedToken;
         User.findById({ _id: userId }, (err, user) => {
@@ -135,7 +135,7 @@ export const checkEmailTokenAndRedirect = async (req, res) => {
           } else {
             return res
               .status(404)
-              .json({ message: 'user not found with provided token' });
+              .json({ message: 'User with provided ID does not exist.' });
           }
         });
       });
@@ -143,7 +143,7 @@ export const checkEmailTokenAndRedirect = async (req, res) => {
   } catch (err) {
     return res
       .status(400)
-      .json({ message: 'Invalid credentials, please fill all inputs' });
+      .json({ message: 'Invalid credentials, Please fill all inputs' });
   }
 };
 
@@ -152,21 +152,21 @@ export const updatePassword = async (req, res) => {
     const { token, password } = req.body;
     if (!token) {
       return res.status(400).json({
-        message: 'token not provided.',
+        message: 'Token not provided.',
       });
     }
     // verify token
     jwt.verify(token, process.env.JWT_SECRET, async (jwtErr, decodedToken) => {
       if (jwtErr) {
         return res.status(400).json({
-          message: 'invalid token provided.',
+          message: 'Invalid token provided.',
         });
       }
       const { userId } = decodedToken;
       const user = await User.findById(userId);
       if (!user) {
         return res.status(400).json({
-          message: "user doesn't exist.",
+          message: 'User with the provided ID does not exist.',
         });
       }
       const newPassword = await bcrypt.hash(password, 10);
@@ -175,13 +175,13 @@ export const updatePassword = async (req, res) => {
       console.log('user saved..');
 
       return res.status(200).json({
-        message: 'success',
+        message: 'Password was successfully updated.',
       });
     });
   } catch (err) {
     console.log('err:', err);
     return res.status(500).json({
-      message: 'unexpected error occured. please try again',
+      message: 'Unexpected error occured. Please try again.',
     });
   }
 };
@@ -192,25 +192,20 @@ export const signupWithGoogle = async (req, res) => {
   try {
     if (!email) {
       return res.status(400).json({
-        message: 'please fill the required field',
+        message: 'Please fill all required fields',
       });
     }
     const existingUser = await User.findOne({ email: email });
 
     if (existingUser) {
       return res.status(400).json({
-        message: 'User Already Exist!',
+        message: 'User with provided email already exists.',
       });
     }
 
     const user = await User.create({
       ...req.body,
     });
-    if (!user) {
-      return res.status(500).json({
-        message: 'Error when creating user',
-      });
-    }
     const token = jwt.sign(
       { email: user.email, userId: user._id },
       process.env.JWT_SECRET,
@@ -219,13 +214,13 @@ export const signupWithGoogle = async (req, res) => {
     res.status(201).json({
       token: token,
       expiresIn: process.env.AUTH_EXPIRESIN,
-      message: 'User created!',
+      message: 'User successfully created.',
       result: user,
     });
   } catch (err) {
     console.log('err:', err);
     return res.status(500).json({
-      message: 'unexpected error occured. please try again',
+      message: 'Unexpected error occured. Please try again.',
     });
   }
 };
@@ -237,7 +232,7 @@ export const loginWithGoogle = async (req, res) => {
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(401).json({
-        message: 'Auth failed no such user',
+        message: 'User with provided email does not exist.',
       });
     }
     const token = jwt.sign(
@@ -253,7 +248,7 @@ export const loginWithGoogle = async (req, res) => {
   } catch (err) {
     console.log('err:', err);
     return res.status(500).json({
-      message: 'unexpected error occured. please try again',
+      message: 'Unexpected error occured. Please try again.',
     });
   }
 };
@@ -265,21 +260,21 @@ export const setFirstPassword = async (req, res) => {
   // check token
   if (!req.headers.authorization) {
     return res.status(401).json({
-      message: 'token not provided',
+      message: 'Token not provided.',
     });
   }
   const { userId } = req.userData;
   const { newPassword } = req.body;
   if (!newPassword) {
     return res.status(400).json({
-      message: 'new password is not provided. please enter one',
+      message: 'New password is not provided. Please provide one',
     });
   }
   try {
     const user = await User.findById(userId);
     if (!user) {
       return res.status(400).json({
-        message: 'No such user',
+        message: 'User with provided ID does not exist.',
       });
     }
     const hashedPassword = await bcrypt.hash(newPassword, 10);
@@ -287,13 +282,13 @@ export const setFirstPassword = async (req, res) => {
     await user.save();
 
     res.status(201).json({
-      message: 'Password is successfuly created',
+      message: 'Password was successfuly created',
       result: user,
     });
   } catch (err) {
     console.log('err:', err);
     return res.status(500).json({
-      message: 'unexpected error occured. please try again',
+      message: 'Unexpected error occured. Please try again.',
     });
   }
 };

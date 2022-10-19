@@ -12,7 +12,7 @@ export const getLoggedInUserData = async (req, res) => {
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({
-        message: 'no such user',
+        message: 'User with provided ID does not exist.',
       });
     }
 
@@ -36,8 +36,10 @@ export const getLoggedInUserData = async (req, res) => {
       reservations: reservations,
     });
   } catch (err) {
-    console.error(err);
-    res.status(500).json(err);
+    console.log('err:', err);
+    return res.status(500).json({
+      message: 'Unexpected error occured. Please try again.',
+    });
   }
 };
 
@@ -49,7 +51,7 @@ export const updateUserInfo = async (req, res) => {
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({
-        message: 'no such user',
+        message: 'User with provided ID does not exist.',
       });
     }
 
@@ -68,8 +70,10 @@ export const updateUserInfo = async (req, res) => {
     await user.save();
     return res.status(200).json(user);
   } catch (err) {
-    console.error(err);
-    res.status(500).json(err);
+    console.log('err:', err);
+    return res.status(500).json({
+      message: 'Unexpected error occured. Please try again.',
+    });
   }
 };
 
@@ -79,7 +83,7 @@ export const updateUserPhoto = async (req, res) => {
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({
-        message: 'no such user',
+        message: 'User with provided ID does not exist.',
       });
     }
     const result = await fileUploadHelper(req.file.filename, userId, 'users');
@@ -87,12 +91,14 @@ export const updateUserPhoto = async (req, res) => {
     await user.save();
 
     return res.status(201).json({
-      message: 'user photo is updated successfully!!',
+      message: 'Photo was successfully updated.',
       user,
     });
   } catch (err) {
-    console.error(err);
-    res.status(500).json(err);
+    console.log('err:', err);
+    return res.status(500).json({
+      message: 'Unexpected error occured. Please try again.',
+    });
   }
 };
 
@@ -105,7 +111,10 @@ export const getAppointmentsOfUser = async (req, res) => {
     const appointments = await getSchedules(id);
     res.status(200).send(appointments);
   } catch (err) {
-    console.error('error', err);
+    console.log('err:', err);
+    return res.status(500).json({
+      message: 'Unexpected error occured. Please try again.',
+    });
   }
 };
 
@@ -120,7 +129,7 @@ export const createNewAppointment = async (req, res) => {
 
     if (!createdUser || !targetUser) {
       return res.status(404).json({
-        message: 'no such user',
+        message: 'User with provided ID does not exist.',
       });
     }
 
@@ -140,7 +149,7 @@ export const createNewAppointment = async (req, res) => {
     console.log('target', targetScheduleOption);
     if (!targetScheduleOption || !targetScheduleOption.isAvailable) {
       return res.status(400).json({
-        message: 'requested date or time not available',
+        message: 'Requested date or time not available.',
       });
     }
     const appointment = await Appointment.create({
@@ -151,12 +160,14 @@ export const createNewAppointment = async (req, res) => {
     });
 
     res.status(201).json({
-      message: 'appointment is now created with status pending',
+      message: 'Appointment is now created with status pending.',
       appointment,
     });
   } catch (err) {
-    console.error('errror', err);
-    res.status(500).json(err);
+    console.log('err:', err);
+    return res.status(500).json({
+      message: 'Unexpected error occured. Please try again.',
+    });
   }
 };
 
@@ -173,10 +184,12 @@ export const confirmAppointment = async (req, res) => {
     await appointment.save();
     return res
       .status(200)
-      .json({ message: 'appointment is now confirmed', appointment });
+      .json({ message: 'Appointment is now confirmed', appointment });
   } catch (err) {
-    console.error(err);
-    res.status(500).json(err);
+    console.log('err:', err);
+    return res.status(500).json({
+      message: 'Unexpected error occured. Please try again.',
+    });
   }
 };
 
@@ -188,14 +201,16 @@ export const cancelAppointment = async (req, res) => {
   try {
     const appointment = await Appointment.findById(appointmentId);
     if (!appointment)
-      return res.status(404).json({ message: 'appointment not found' });
+      return res.status(404).json({ message: 'Appointment not found' });
     appointment.status = 'Canceled';
     await appointment.save();
     return res
       .status(200)
-      .json({ message: 'appointment is now canceled', appointment });
+      .json({ message: 'Appointment is now canceled', appointment });
   } catch (err) {
-    console.error(err);
-    res.status(500).json(err);
+    console.log('err:', err);
+    return res.status(500).json({
+      message: 'Unexpected error occured. Please try again.',
+    });
   }
 };

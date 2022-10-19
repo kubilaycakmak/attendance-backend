@@ -9,8 +9,10 @@ export const getAllRoomsInfo = async (req, res) => {
     const rooms = await Room.find();
     return res.status(200).json(rooms);
   } catch (err) {
-    console.log(err);
-    return res.status(500).json(err);
+    console.log('err:', err);
+    return res.status(500).json({
+      message: 'Unexpected error occured. Please try again.',
+    });
   }
 };
 
@@ -21,7 +23,7 @@ export const getRoomInfo = async (req, res) => {
     const room = await Room.findById(id);
     if (!room) {
       return res.status(404).json({
-        message: 'not such room',
+        message: 'Room with provided ID does not exist.',
       });
     }
     const nextAvailableTime = await getNextAvailableTime(id);
@@ -32,8 +34,10 @@ export const getRoomInfo = async (req, res) => {
       },
     });
   } catch (err) {
-    console.log(err);
-    return res.status(500).json(err);
+    console.log('err:', err);
+    return res.status(500).json({
+      message: 'Unexpected error occured. Please try again.',
+    });
   }
 };
 
@@ -44,10 +48,12 @@ export const createNewRoom = async (req, res) => {
     });
     return res
       .status(201)
-      .json({ room, message: 'room is created successfully!!!' });
+      .json({ room, message: 'Room was successfully created.' });
   } catch (err) {
-    console.log(err);
-    res.status(500).json(err);
+    console.log('err:', err);
+    return res.status(500).json({
+      message: 'Unexpected error occured. Please try again.',
+    });
   }
 };
 
@@ -59,7 +65,7 @@ export const updateRoomInfo = async (req, res) => {
 
     if (!room) {
       return res.status(404).json({
-        message: 'not such room',
+        message: 'Room with provided ID does not exist.',
       });
     }
 
@@ -74,11 +80,13 @@ export const updateRoomInfo = async (req, res) => {
 
     return res.status(200).json({
       room,
-      message: 'room is updated successfully!!!',
+      message: 'Room was successfully updated.',
     });
   } catch (err) {
-    console.log(err);
-    res.status(500).json(err);
+    console.log('err:', err);
+    return res.status(500).json({
+      message: 'Unexpected error occured. Please try again.',
+    });
   }
 };
 
@@ -88,7 +96,7 @@ export const updateRoomPhoto = async (req, res) => {
     const room = await Room.findById(id);
     if (!room) {
       return res.status(200).json({
-        message: 'not such room',
+        message: 'Room with provided ID does not exist.',
       });
     }
     const result = await fileUploadHelper(req.file.filename, id, 'rooms');
@@ -98,11 +106,13 @@ export const updateRoomPhoto = async (req, res) => {
 
     return res.status(200).json({
       room,
-      message: 'room photo is updated successfully!!!',
+      message: 'Room photo was successfully updated.',
     });
   } catch (err) {
-    console.log(err);
-    res.status(500).json(err);
+    console.log('err:', err);
+    return res.status(500).json({
+      message: 'Unexpected error occured. Please try again.',
+    });
   }
 };
 
@@ -112,18 +122,20 @@ export const deleteRoom = async (req, res) => {
     const room = await Room.findById(id);
     if (!room) {
       return res.status(404).json({
-        message: 'no such room.',
+        message: 'Room with provided ID does not exist.',
       });
     }
 
     await Room.findByIdAndDelete(id);
 
     res.status(200).json({
-      message: 'room is deleted successfully!',
+      message: 'Room was successfully deleted.',
     });
   } catch (err) {
-    console.log(err);
-    res.status(500).json(err);
+    console.log('err:', err);
+    return res.status(500).json({
+      message: 'Unexpected error occured. Please try again.',
+    });
   }
 };
 
@@ -137,7 +149,10 @@ export const getAllReservations = async (req, res) => {
     });
     res.status(200).json(reservations);
   } catch (err) {
-    res.status(500).json({ message: 'unexpected error occured' });
+    console.log('err:', err);
+    return res.status(500).json({
+      message: 'Unexpected error occured. Please try again.',
+    });
   }
 };
 
@@ -154,7 +169,10 @@ export const getAllReservationsOfRoom = async (req, res) => {
     });
     res.status(200).json(reservations);
   } catch (err) {
-    res.status(500).json({ message: 'unexpected error occured' });
+    console.log('err:', err);
+    return res.status(500).json({
+      message: 'Unexpected error occured. Please try again.',
+    });
   }
 };
 
@@ -200,7 +218,10 @@ export const createNewReservation = async (req, res) => {
     });
     res.status(201).json(reservation);
   } catch (err) {
-    res.status(500).json({ message: 'unexpected error occured' });
+    console.log('err:', err);
+    return res.status(500).json({
+      message: 'Unexpected error occured. Please try again.',
+    });
   }
 };
 
@@ -211,15 +232,18 @@ export const confirmReservation = async (req, res) => {
     if (!reservation) {
       return res
         .status(404)
-        .json({ message: 'reservation with provided ID not found' });
+        .json({ message: 'Reservation with provided ID not found' });
     }
     reservation.status = 'Active';
     await reservation.save();
     res
       .status(200)
-      .json({ message: 'reservation is now confirmed', reservation });
-  } catch (e) {
-    res.status(500).json({ message: 'unexpected error occured' });
+      .json({ message: 'Reservation is now confirmed', reservation });
+  } catch (err) {
+    console.log('err:', err);
+    return res.status(500).json({
+      message: 'Unexpected error occured. Please try again.',
+    });
   }
 };
 
@@ -230,12 +254,15 @@ export const cancelReservation = async (req, res) => {
     if (!reservation) {
       return reservation
         .status(404)
-        .json({ message: 'reservation with provided ID not found' });
+        .json({ message: 'Reservation with provided ID not found' });
     }
     reservation.status = 'Canceled';
     await reservation.save();
-    res.status(200).json({ message: 'reservation is now canceled' });
-  } catch (e) {
-    res.status(500).json({ message: 'unexpected error occured' });
+    res.status(200).json({ message: 'Reservation is now canceled' });
+  } catch (err) {
+    console.log('err:', err);
+    return res.status(500).json({
+      message: 'Unexpected error occured. Please try again.',
+    });
   }
 };
