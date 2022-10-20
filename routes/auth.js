@@ -1,7 +1,7 @@
 import express from 'express';
 import dotenv from 'dotenv';
-import decodeJWT from '../middleware/check_auth.js';
-import verifyGoogleMiddleware from '../middleware/verify_google_user.js';
+import decodeJWT from '../middleware/checkAuth.js';
+import verifyGoogleMiddleware from '../middleware/verifyGoogleUser.js';
 import {
   signup,
   login,

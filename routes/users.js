@@ -1,5 +1,5 @@
 import express from 'express';
-import decodeJWT from '../middleware/check_auth.js';
+import decodeJWT from '../middleware/checkAuth.js';
 import upload from '../middleware/multer.js';
 import {
   getLoggedInUserData,
