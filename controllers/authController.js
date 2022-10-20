@@ -257,12 +257,6 @@ export const loginWithGoogle = async (req, res) => {
  * set password after signup with Google
  */
 export const setFirstPassword = async (req, res) => {
-  // check token
-  if (!req.headers.authorization) {
-    return res.status(401).json({
-      message: 'Token not provided.',
-    });
-  }
   const { userId } = req.userData;
   const { newPassword } = req.body;
   if (!newPassword) {
