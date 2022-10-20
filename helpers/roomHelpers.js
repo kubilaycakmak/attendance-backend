@@ -18,21 +18,21 @@ const validateReservation = async (reqData) => {
   const validTypes = ['weekly', 'non_weekly'];
   if (!validTypes.includes(type)) {
     return {
-      error: 'wrong type provided. use "weekly" or "non_weekly".',
+      error: 'Wrong type provided. Only "weekly" or "non_weekly" are accepted.',
       statusCode: 400,
     };
   }
   // date
   if (Date.parse(start_date) > Date.parse(end_date)) {
     return {
-      error: 'start date cannot be bigger than end date',
+      error: 'Start date cannot be bigger than end date',
       statusCode: 400,
     };
   }
   // time
   if (start_time.replace(':', '') >= end_time.replace(':', '')) {
     return {
-      error: 'start time cannot be bigger than or equal to end time',
+      error: 'Start time cannot be bigger than or equal to end time',
       statusCode: 400,
     };
   }
@@ -41,13 +41,13 @@ const validateReservation = async (reqData) => {
     const room = await Room.findById(room_id);
     if (!room) {
       return {
-        error: 'room with given ID does not exist',
+        error: 'Room with given ID does not exist',
         statusCode: 400,
       };
     }
   } catch (e) {
     return {
-      error: 'invalid ID format provided',
+      error: 'Invalid ID format provided',
       statusCode: 400,
     };
   }
@@ -59,7 +59,7 @@ const validateReservation = async (reqData) => {
     if (startWeek !== endWeek) {
       return {
         error:
-          'start_date and end_date need to be in the same week for a "weekly" reservation',
+          'Start_date and end_date need to be in the same week for a "weekly" reservation',
         statusCode: 400,
       };
     }
@@ -68,13 +68,13 @@ const validateReservation = async (reqData) => {
     if (duration < 1) {
       return {
         error:
-          'wrong duration value provided. It needs to be bigger than or equal to 1',
+          'Wrong duration value provided. It needs to be bigger than or equal to 1',
         statusCode: 400,
       };
     }
     if (duration > MAX_WEEK_DURATION) {
       return {
-        error: `the maximum duration is ${MAX_WEEK_DURATION}.`,
+        error: `The maximum duration acceptable is ${MAX_WEEK_DURATION}.`,
         statusCode: 400,
       };
     }
@@ -85,7 +85,7 @@ const validateReservation = async (reqData) => {
     const weekends = ['Saturday', 'Sunday'];
     if (weekends.includes(startDateDow) || weekends.includes(endDateDow)) {
       return {
-        error: 'weekends cannot be included',
+        error: 'Weekends cannot be included',
         statusCode: 400,
       };
     }
@@ -185,7 +185,7 @@ const validateReservation = async (reqData) => {
         ) != null;
       if (isConflicted) {
         return {
-          error: 'reservation conflict found with provided date',
+          error: 'Reservation conflict found with provided date',
           statusCode: 400,
         };
       }
@@ -193,7 +193,7 @@ const validateReservation = async (reqData) => {
   } catch (e) {
     console.log(e);
     return {
-      error: 'unexpected error occured',
+      error: 'Unexpected error occured. Please try again.',
       statusCode: 500,
     };
   }
