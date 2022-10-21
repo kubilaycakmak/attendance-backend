@@ -1,16 +1,19 @@
 import User from '../models/user.js';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import validateUserInfo from '../helpers/validateUserInfo.js';
 import { sendEmail } from '../utils/sendEmail.js';
 import dotenv from 'dotenv';
 
 dotenv.config();
 
 export const signup = async (req, res) => {
-  const { email, password, username } = req.body;
-  if (!password?.trim() || !email || !username) {
-    return res.status(401).json({
-      message: 'Please provide required fields.',
+  const { email, password } = req.body;
+  // validate form data
+  const errorMsg = validateUserInfo(req.body, ['email', 'password']);
+  if (errorMsg) {
+    return res.status(400).json({
+      message: errorMsg,
     });
   }
   try {

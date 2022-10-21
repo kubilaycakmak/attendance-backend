@@ -1,6 +1,7 @@
 import User from '../models/user.js';
 import Appointment from '../models/appointment.js';
 import Reservation from '../models/reservation.js';
+import validateUserInfo from '../helpers/validateUserInfo.js';
 import { getSchedules } from '../helpers/userHeplers.js';
 import jwt from 'jsonwebtoken';
 import moment from 'moment';
@@ -46,7 +47,13 @@ export const getLoggedInUserData = async (req, res) => {
 export const updateUserInfo = async (req, res) => {
   const { userId } = req.userData;
   const { full_name, password, current_program, social } = req.body;
-
+  // validate form data
+  const errorMsg = validateUserInfo(req.body);
+  if (errorMsg) {
+    return res.status(400).json({
+      message: errorMsg,
+    });
+  }
   try {
     const user = await User.findById(userId);
     if (!user) {
@@ -54,20 +61,18 @@ export const updateUserInfo = async (req, res) => {
         message: 'User with provided ID does not exist.',
       });
     }
-
     if (full_name) user.full_name = full_name;
     if (password) user.password = password;
     if (current_program) user.current_program = current_program;
     if (social) {
       const { discord, slack, linkedin } = social;
-
       if (discord) social.discord = discord;
       if (slack) social.slack = slack;
       if (linkedin) social.linkedin = linkedin;
       user.social = social;
     }
-
     await user.save();
+
     return res.status(200).json(user);
   } catch (err) {
     console.log('err:', err);
