@@ -16,8 +16,12 @@ export const getAllRoomsInfo = async (req, res) => {
   }
 };
 
-export const getRoomInfo = async (req, res) => {
+export const getRoomInfo = async (req, res, next) => {
   const { id } = req.params;
+
+  if (id == 'reservations') {
+    return next();
+  }
 
   try {
     const room = await Room.findById(id);
