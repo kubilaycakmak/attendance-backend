@@ -3,7 +3,6 @@ import Reservation from '../models/reservation.js';
 
 const getNextAvailableTime = async (room_id) => {
   const now = moment();
-
   const format = 'hh:mm';
   const schoolStart = moment('08:00', format);
   const schoolEnd = moment('21:30', format);
@@ -13,6 +12,7 @@ const getNextAvailableTime = async (room_id) => {
       { room_id },
       { end_date: { $gte: now.format('YYYY-MM-DD') } },
       { end_time: { $gte: now.format(format) } },
+      { status: { $ne: 'Canceled' } },
     ],
   });
   if (!reservations.length) {
