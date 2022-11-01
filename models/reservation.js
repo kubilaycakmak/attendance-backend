@@ -10,6 +10,7 @@ const reservationSchema = mongoose.Schema({
   start_time: String,
   end_time: String,
   duration: Number,
+  description: String,
 });
 
 const Reservation = mongoose.model('Reservation', reservationSchema);

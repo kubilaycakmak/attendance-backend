@@ -193,6 +193,7 @@ export const createNewReservation = async (req, res) => {
     start_time,
     end_time,
     duration,
+    description,
   } = req.body;
   const { error, statusCode } = await validateReservation({
     room_id,
@@ -219,6 +220,7 @@ export const createNewReservation = async (req, res) => {
       start_time,
       end_time,
       duration: type === 'weekly' ? duration : null,
+      description,
     });
     res.status(201).json(reservation);
   } catch (err) {
