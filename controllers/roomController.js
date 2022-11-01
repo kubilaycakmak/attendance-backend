@@ -3,6 +3,7 @@ import Reservation from '../models/reservation.js';
 import fileUploadHelper from '../helpers/flileUploadHelper.js';
 import { validateReservation } from '../helpers/roomHelpers.js';
 import getNextAvailableTime from '../helpers/getNextAvailableTime.js';
+import moment from 'moment';
 
 export const getAllRoomsInfo = async (req, res) => {
   try {
@@ -209,6 +210,12 @@ export const createNewReservation = async (req, res) => {
   }
 
   try {
+    const createActualEndDate = (endDate, duration) => {
+      return moment(endDate)
+        .add(duration - 1, 'weeks')
+        .format('YYYY-MM-DD');
+    };
+
     const reservation = await Reservation.create({
       user_id,
       room_id,
@@ -219,6 +226,8 @@ export const createNewReservation = async (req, res) => {
       start_time,
       end_time,
       duration: type === 'weekly' ? duration : null,
+      actual_end_date:
+        type === 'weekly' ? createActualEndDate(end_date, duration) : end_date,
     });
     res.status(201).json(reservation);
   } catch (err) {
