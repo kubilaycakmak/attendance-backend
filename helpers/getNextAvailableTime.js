@@ -113,7 +113,7 @@ const getNextAvailableTime = async (room_id) => {
     availableTime = closestEnd;
   }
 
-  return availableTime.format('YYYY-MM-DD HH:mm');
+  return availableTime.format('YYYY-MM-DD HH:mm A');
 };
 
 export default getNextAvailableTime;
