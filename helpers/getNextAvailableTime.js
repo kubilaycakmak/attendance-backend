@@ -72,6 +72,9 @@ const getNextAvailableTime = async (room_id) => {
       start_date: moment(closestReservation.start_date)
         .add(dayDiff, 'days')
         .format('YYYY-MM-DD'),
+      end_date: moment(closestReservation.start_date)
+        .add(dayDiff, 'days')
+        .format('YYYY-MM-DD'),
     };
     cloneClosestReservation.push(tmp);
     dayDiff--;
