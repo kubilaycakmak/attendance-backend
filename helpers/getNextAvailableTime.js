@@ -11,7 +11,6 @@ const getNextAvailableTime = async (room_id) => {
     $and: [
       { room_id },
       { actual_end_date: { $gte: now.format('YYYY-MM-DD') } },
-      // { end_time: { $gte: now.format(format) } },
       { status: { $ne: 'Canceled' } },
     ],
   });
@@ -19,17 +18,17 @@ const getNextAvailableTime = async (room_id) => {
   if (!reservations.length) {
     return now.format('YYYY-MM-DD HH:mm');
   }
-  console.log('reservations: ', reservations);
   const nonWeeklyReservations = reservations.filter(
     ({ type }) => type === 'non_weekly'
   );
   const weeklyReservations = reservations.filter(
     ({ type }) => type === 'weekly'
   );
-  // weeklyのやつを複製する
+
   const clonedWeeklyReservations = [];
   weeklyReservations.forEach((weeklyReservation) => {
     let duration = weeklyReservation.duration - 1;
+
     clonedWeeklyReservations.push(weeklyReservation._doc);
     while (duration) {
       const tmp = {

@@ -22,6 +22,17 @@ const validateReservation = async (reqData) => {
       statusCode: 400,
     };
   }
+
+  // cheking date is after now
+  const now = moment();
+  const reservationDate = moment([start_date, start_time].join('T'));
+  if (reservationDate.isBefore(now)) {
+    return {
+      error: 'Cannot make a reservation before current time.',
+      statusCode: 400,
+    };
+  }
+
   // date
   if (Date.parse(start_date) > Date.parse(end_date)) {
     return {
