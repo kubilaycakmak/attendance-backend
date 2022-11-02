@@ -168,6 +168,12 @@ export const getAllReservations = async (req, res) => {
         $unwind: '$user',
       },
     ]).exec((err, result) => {
+      if (err) {
+        console.log('err:', err);
+        return res.status(500).json({
+          message: 'Unexpected error occured. Please try again.',
+        });
+      }
       res.status(200).json(result);
     });
   } catch (err) {
@@ -205,8 +211,8 @@ export const getAllReservationsOfRoom = async (req, res) => {
         $unwind: '$user',
       },
     ]).exec((err, result) => {
-      console.log('err:', err);
       if (err) {
+        console.log('err:', err);
         return res.status(500).json({
           message: 'Unexpected error occured. Please try again.',
         });
