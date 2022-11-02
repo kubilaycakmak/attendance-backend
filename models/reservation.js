@@ -10,6 +10,7 @@ const reservationSchema = mongoose.Schema({
   start_time: String,
   end_time: String,
   duration: Number,
+  actual_end_date: String,
 });
 
 const Reservation = mongoose.model('Reservation', reservationSchema);
