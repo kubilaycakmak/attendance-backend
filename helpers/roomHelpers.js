@@ -25,6 +25,7 @@ const validateReservation = async (reqData) => {
 
   // cheking date is after now
   const now = moment();
+  console.log('now: ', now);
   const reservationDate = moment([start_date, start_time].join('T'));
   if (reservationDate.isBefore(now)) {
     return {
