@@ -149,10 +149,34 @@ export const deleteRoom = async (req, res) => {
  */
 export const getAllReservations = async (req, res) => {
   try {
-    const reservations = await Reservation.find({
-      status: { $ne: 'Canceled' },
+    Reservation.aggregate([
+      { $addFields: { user_id: { $toObjectId: '$user_id' } } },
+      {
+        $match: {
+          status: { $ne: 'Canceled' },
+        },
+      },
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'user_id',
+          foreignField: '_id',
+          as: 'user',
+          pipeline: [{ $project: { full_name: 1, photo: 1, role: 1 } }],
+        },
+      },
+      {
+        $unwind: '$user',
+      },
+    ]).exec((err, result) => {
+      if (err) {
+        console.log('err:', err);
+        return res.status(500).json({
+          message: 'Unexpected error occured. Please try again.',
+        });
+      }
+      res.status(200).json(result);
     });
-    res.status(200).json(reservations);
   } catch (err) {
     console.log('err:', err);
     return res.status(500).json({
@@ -166,13 +190,36 @@ export const getAllReservations = async (req, res) => {
  */
 export const getAllReservationsOfRoom = async (req, res) => {
   const { room_id } = req.params;
-
   try {
-    const reservations = await Reservation.find({
-      room_id,
-      status: { $ne: 'Canceled' },
+    Reservation.aggregate([
+      { $addFields: { user_id: { $toObjectId: '$user_id' } } },
+      {
+        $match: {
+          room_id,
+          status: { $ne: 'Canceled' },
+        },
+      },
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'user_id',
+          foreignField: '_id',
+          as: 'user',
+          pipeline: [{ $project: { full_name: 1, photo: 1, role: 1 } }],
+        },
+      },
+      {
+        $unwind: '$user',
+      },
+    ]).exec((err, result) => {
+      if (err) {
+        console.log('err:', err);
+        return res.status(500).json({
+          message: 'Unexpected error occured. Please try again.',
+        });
+      }
+      return res.status(200).json(result);
     });
-    res.status(200).json(reservations);
   } catch (err) {
     console.log('err:', err);
     return res.status(500).json({
@@ -185,7 +232,8 @@ export const getAllReservationsOfRoom = async (req, res) => {
  * post new reservation
  */
 export const createNewReservation = async (req, res) => {
-  const { user_id } = req.userData;
+  const { userId } = req.userData;
+  console.log('userId', userId);
   const {
     room_id,
     type,
@@ -217,7 +265,7 @@ export const createNewReservation = async (req, res) => {
     };
 
     const reservation = await Reservation.create({
-      user_id,
+      user_id: userId,
       room_id,
       status: 'Pending',
       type,
