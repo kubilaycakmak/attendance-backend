@@ -172,6 +172,12 @@ export const updatePassword = async (req, res) => {
           message: 'User with the provided ID does not exist.',
         });
       }
+      const errorMsg = validateUserInfo({ password });
+      if (errorMsg) {
+        return res.status(400).json({
+          message: errorMsg,
+        });
+      }
       const newPassword = await bcrypt.hash(password, 10);
       user.password = newPassword;
       await user.save();
