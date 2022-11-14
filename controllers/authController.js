@@ -104,7 +104,7 @@ export const forgotPassword = async (req, res) => {
       expiresIn: process.env.AUTH_EXPIRESIN,
     });
 
-    const link = `${process.env.BASE_URL}/api/auth/forgot-password/${token}`;
+    const link = `${process.env.FRONT_END_URL}/new-password/${token}`;
     await sendEmail(email, 'Password reset', link);
 
     return res.status(200).json({
@@ -172,6 +172,14 @@ export const updatePassword = async (req, res) => {
           message: 'User with the provided ID does not exist.',
         });
       }
+      const errorMsg = validateUserInfo({ password });
+      console.log('error msg', errorMsg);
+      if (errorMsg) {
+        return res.status(400).json({
+          message: errorMsg,
+        });
+      }
+
       const newPassword = await bcrypt.hash(password, 10);
       user.password = newPassword;
       await user.save();
