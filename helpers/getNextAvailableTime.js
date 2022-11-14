@@ -100,13 +100,17 @@ const getNextAvailableTime = async (room_id) => {
 
   let availableTime;
 
-  if (now.isBefore(closestStart) && now.isBetween(schoolStart, schoolEnd)) {
-    console.log('hello');
+  if (
+    now.isBefore(moment(closestStart).subtract(30, 'minutes')) &&
+    now.isBetween(schoolStart, schoolEnd)
+  ) {
     availableTime = now;
   } else if (
-    now.isBefore(closestStart) &&
-    !now.isBetween(schoolStart, schoolEnd) &&
-    moment('08:00', format).add(1, 'days').isBefore(closestStart)
+    (now.isBefore(closestStart) &&
+      !now.isBetween(schoolStart, schoolEnd) &&
+      moment('08:00', format).add(1, 'days').isBefore(closestStart)) ||
+    (now.isBetween(closestStart, closestEnd) &&
+      closestEnd.isAfter(moment(schoolEnd).subtract(30, 'minutes')))
   ) {
     availableTime = moment('08:00', format).add(1, 'days');
   } else {
