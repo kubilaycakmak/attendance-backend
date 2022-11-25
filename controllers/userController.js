@@ -1,6 +1,7 @@
 import User from '../models/user.js';
 import Appointment from '../models/appointment.js';
 import Reservation from '../models/reservation.js';
+import Video from '../models/video.js';
 import validateUserInfo from '../helpers/validateUserInfo.js';
 import { getSchedules } from '../helpers/userHeplers.js';
 import jwt from 'jsonwebtoken';
@@ -23,6 +24,7 @@ export const getLoggedInUserData = async (req, res) => {
     const reservations = await Reservation.find({
       $or: [{ created_by: userId }, { target_user: userId }],
     });
+    const videos = await Video.find({ userId });
 
     const token = jwt.sign(
       { email: user.email, userId: user._id },
@@ -31,10 +33,11 @@ export const getLoggedInUserData = async (req, res) => {
     );
 
     res.status(200).json({
-      token: token,
-      user: user,
-      appointments: appointments,
-      reservations: reservations,
+      token,
+      user,
+      appointments,
+      reservations,
+      videos,
     });
   } catch (err) {
     console.log('err:', err);
@@ -46,7 +49,7 @@ export const getLoggedInUserData = async (req, res) => {
 
 export const updateUserInfo = async (req, res) => {
   const { userId } = req.userData;
-  const { full_name, password, current_program, social } = req.body;
+  const { full_name, password, current_program, social, videos } = req.body;
   // validate form data
   const errorMsg = validateUserInfo(req.body);
   if (errorMsg) {
@@ -70,6 +73,31 @@ export const updateUserInfo = async (req, res) => {
       if (slack) social.slack = slack;
       if (linkedin) social.linkedin = linkedin;
       user.social = social;
+    }
+
+    if (videos) {
+      const videosInDb = await Video.find({ userId });
+      const deleteAndUpdatePromises = videosInDb.map((videoInDb) => {
+        const existingVideo = videos.find(
+          (videoInReq) => videoInReq._id === videoInDb._id
+        );
+        if (!existingVideo) {
+          return Video.deleteOne({ _id: videoInDb._id });
+        }
+        videoInDb.title = existingVideo.title;
+        return videoInDb.save();
+      });
+      const createPromises = videos.map((videoInReq) => {
+        if (!videosInDb.find((videoInDb) => videoInReq._id === videoInDb._id)) {
+          return Video.create({
+            userId,
+            title: videoInReq.title,
+            url: videoInReq.url,
+            likes: [],
+          });
+        }
+      });
+      await Promise.all([...deleteAndUpdatePromises, ...createPromises]);
     }
     await user.save();
 
@@ -215,6 +243,41 @@ export const cancelAppointment = async (req, res) => {
   } catch (err) {
     console.log('err:', err);
     return res.status(500).json({
+      message: 'Unexpected error occured. Please try again.',
+    });
+  }
+};
+
+/**
+ * manage likes of video
+ */
+export const manageLikeOfVideo = async (req, res) => {
+  const { videoId } = req.params;
+  const { userId } = req.userData;
+  const { isLike } = req.query;
+
+  try {
+    const video = await Video.findById(videoId);
+    if (!video) {
+      return res.status(404).json({
+        message: 'Video with provided ID does not exist.',
+      });
+    }
+
+    if (isLike) video.likes.push(userId);
+    else
+      video.likes = video.likes.filter((id) => {
+        id !== userId;
+      });
+
+    await video.save();
+
+    return res.status(200).json({
+      message: 'User successfully liked the video.',
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({
       message: 'Unexpected error occured. Please try again.',
     });
   }

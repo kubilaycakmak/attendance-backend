@@ -9,10 +9,10 @@ import {
   confirmAppointment,
   createNewAppointment,
   getAppointmentsOfUser,
+  manageLikeOfVideo,
 } from '../controllers/userController.js';
 
 const router = express.Router();
-// router.use()
 
 router.get('/me', decodeJWT, getLoggedInUserData);
 router.put(
@@ -31,5 +31,6 @@ router.get('/:id/appointments', getAppointmentsOfUser);
 router.post('/appointments', createNewAppointment);
 router.put('/appointments/:appointmentId/confirm', confirmAppointment);
 router.put('/appointments/:appointmentId/cancel', cancelAppointment);
+router.get('/videos/:videoId/like', decodeJWT, manageLikeOfVideo);
 
 export default router;
