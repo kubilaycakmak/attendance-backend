@@ -34,7 +34,10 @@ export const getLoggedInUserData = async (req, res) => {
 
     res.status(200).json({
       token,
-      user,
+      user: {
+        ...user._doc,
+        password: undefined,
+      },
       appointments,
       reservations,
       videos,
