@@ -72,12 +72,12 @@ export const updateUserInfo = async (req, res) => {
     if (current_program) user.current_program = current_program;
     if (social) {
       const { discord, slack, linkedin } = social;
-      if (discord) social.discord = discord;
-      if (slack) social.slack = slack;
-      if (linkedin) social.linkedin = linkedin;
-      user.social = social;
+      if (discord) user.social.discord = discord;
+      if (slack) user.social.slack = slack;
+      if (linkedin) user.social.linkedin = linkedin;
     }
 
+    let videoForResponse;
     if (videos) {
       const videosInDb = await Video.find({ userId });
       const deleteAndUpdatePromises = videosInDb.map((videoInDb) => {
@@ -100,11 +100,17 @@ export const updateUserInfo = async (req, res) => {
           });
         }
       });
-      await Promise.all([...deleteAndUpdatePromises, ...createPromises]);
+      const promiseResults = await Promise.all([
+        ...deleteAndUpdatePromises,
+        ...createPromises,
+      ]);
+      videoForResponse = promiseResults.filter((result) => {
+        return !result.deletedCount;
+      });
     }
     await user.save();
 
-    return res.status(200).json(user);
+    return res.status(200).json({ user, videos: videoForResponse });
   } catch (err) {
     console.log('err:', err);
     return res.status(500).json({

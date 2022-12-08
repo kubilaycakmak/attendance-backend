@@ -7,15 +7,14 @@ const verifyGoogleMiddleware = async (req, res, next) => {
       `https://www.googleapis.com/oauth2/v3/tokeninfo?id_token=${accessToken}`
     );
     if (email !== resFromGoogle.data.email) {
-      return res
-        .status(401)
-        .json({
-          message: "requested email does't match with the one from google.",
-        });
+      return res.status(401).json({
+        message: "requested email does't match with the one from google.",
+      });
     }
 
     next();
   } catch (err) {
+    console.log('error', err.response);
     if (err.response.data.error_description === 'Invalid Value') {
       return res
         .status(401)
