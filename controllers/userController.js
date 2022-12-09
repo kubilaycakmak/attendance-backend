@@ -154,6 +154,29 @@ export const getAppointmentsOfUser = async (req, res) => {
   }
 };
 
+// get user information by id
+export const getUserById = async (req, res) => {
+  const { id } = req.params;
+  console.log(id);
+  try {
+    const user = await User.findById(id);
+    
+
+    if(!user) {
+      res.status(404).json({
+        "message": "We are not able to find the person using id is " + id
+      })
+    }else{
+      res.status(200).send(user);
+    }
+  } catch (err) {
+    console.log('err:', err);
+    return res.status(500).json({
+      message: 'Unexpected error occured. Please try again.',
+    });
+  }
+};
+
 /**
  * post new appointment
  */
