@@ -15,7 +15,7 @@ import {
 const router = express.Router();
 // router.use()
 
-router.get('/', getAllUsers);
+router.get('/staff', getAllUsers);
 
 router.get('/me', decodeJWT, getLoggedInUserData);
 router.put(
