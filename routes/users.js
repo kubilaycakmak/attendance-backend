@@ -10,10 +10,13 @@ import {
   createNewAppointment,
   getAppointmentsOfUser,
   manageLikeOfVideo,
-  getUserById
+  getUserById,
+  getAllUsers,
 } from '../controllers/userController.js';
 
 const router = express.Router();
+
+router.get('/staff', getAllUsers);
 
 router.get('/me', decodeJWT, getLoggedInUserData);
 router.put(
