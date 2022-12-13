@@ -32,9 +32,17 @@ export const signup = async (req, res) => {
         message: 'Error occured while registering.',
       });
     }
+
+    const token = jwt.sign(
+      { email: newUser.email, userId: newUser._id },
+      process.env.JWT_SECRET,
+      { expiresIn: process.env.AUTH_EXPIRESIN }
+    );
+
     res.status(201).json({
       message: 'User successfully created.',
       result: result,
+      token,
     });
   } catch (err) {
     console.log('err:', err);
@@ -198,14 +206,10 @@ export const updatePassword = async (req, res) => {
 };
 
 export const signupWithGoogle = async (req, res) => {
-  const { email } = req.body;
+  // const { email } = req.body;
+  const { email, id, name, picture } = req.userData;
 
   try {
-    if (!email) {
-      return res.status(400).json({
-        message: 'Please fill all required fields',
-      });
-    }
     const existingUser = await User.findOne({ email: email });
 
     if (existingUser) {
@@ -215,7 +219,12 @@ export const signupWithGoogle = async (req, res) => {
     }
 
     const user = await User.create({
-      ...req.body,
+      username: [...name.split(' '), id].join('-'),
+      full_name: name,
+      password: id,
+      email,
+      photo: picture,
+      used_google_account: true,
     });
     const token = jwt.sign(
       { email: user.email, userId: user._id },
@@ -238,7 +247,8 @@ export const signupWithGoogle = async (req, res) => {
 
 export const loginWithGoogle = async (req, res) => {
   try {
-    const { email } = req.body;
+    const { email } = req.userData;
+    console.log('email: !!!', email);
 
     const user = await User.findOne({ email });
     if (!user) {
@@ -280,6 +290,13 @@ export const setFirstPassword = async (req, res) => {
     if (!user) {
       return res.status(400).json({
         message: 'User with provided ID does not exist.',
+      });
+    }
+
+    const errorMsg = validateUserInfo({ password: newPassword });
+    if (errorMsg) {
+      return res.status(400).json({
+        message: errorMsg,
       });
     }
     const hashedPassword = await bcrypt.hash(newPassword, 10);
