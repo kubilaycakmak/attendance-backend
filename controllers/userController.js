@@ -7,6 +7,28 @@ import jwt from 'jsonwebtoken';
 import moment from 'moment';
 import fileUploadHelper from '../helpers/flileUploadHelper.js';
 
+export const getAllUsers = async (req, res) => {
+  try {
+    const users = await User.find({
+      role: { $in: ['Teacher', 'TA', 'Co-op Manager', 'Coordinator'] },
+    });
+    if (!users) {
+      return res.status(404).json({
+        message: 'User not exist.',
+      });
+    }
+
+    return res.status(200).json({
+      users,
+    });
+  } catch (err) {
+    console.log('error: ', err);
+    return res.status(500).json({
+      message: 'Unexpected error occured. Please try again.',
+    });
+  }
+};
+
 export const getLoggedInUserData = async (req, res) => {
   const { userId } = req.userData;
   try {

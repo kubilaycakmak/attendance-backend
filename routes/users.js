@@ -9,10 +9,13 @@ import {
   confirmAppointment,
   createNewAppointment,
   getAppointmentsOfUser,
+  getAllUsers,
 } from '../controllers/userController.js';
 
 const router = express.Router();
 // router.use()
+
+router.get('/', getAllUsers);
 
 router.get('/me', decodeJWT, getLoggedInUserData);
 router.put(
