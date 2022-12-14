@@ -2,21 +2,22 @@ import axios from 'axios';
 
 const verifyGoogleMiddleware = async (req, res, next) => {
   try {
-    const { email, accessToken } = req.body;
-    const resFromGoogle = await axios.get(
-      `https://www.googleapis.com/oauth2/v3/tokeninfo?id_token=${accessToken}`
+    const { accessToken } = req.body;
+    const {
+      data: { email, id, name, picture },
+    } = await axios.get(
+      'https://www.googleapis.com/oauth2/v2/userinfo?fields=id,email,name,picture',
+      {
+        headers: {
+          authorization: `Bearer ${accessToken}`,
+        },
+      }
     );
-    if (email !== resFromGoogle.data.email) {
-      return res
-        .status(401)
-        .json({
-          message: "requested email does't match with the one from google.",
-        });
-    }
-
+    req.userData = { email, id, name, picture };
     next();
   } catch (err) {
-    if (err.response.data.error_description === 'Invalid Value') {
+    console.log('error:!!', err.response?.data);
+    if (err.response.data) {
       return res
         .status(401)
         .json({ message: 'accessToken is invalid. User is not from google' });
